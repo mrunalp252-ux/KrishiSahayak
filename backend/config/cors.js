@@ -24,7 +24,8 @@ const corsOptions = {
       return callback(null, true);
     }
     const normalizedOrigin = origin.replace(/\/+$/, '');
-    if (allowedOrigins.includes(normalizedOrigin)) {
+    const isVercelOrigin = /^https:\/\/[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.vercel\.app$/.test(normalizedOrigin);
+    if (allowedOrigins.includes(normalizedOrigin) || isVercelOrigin) {
       callback(null, true);
     } else {
       callback(null, false);

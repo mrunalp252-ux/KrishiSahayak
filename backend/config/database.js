@@ -6,6 +6,7 @@ mongoose.set('bufferCommands', false);
 
 let reconnectInterval = null;
 let lastConnectionError = null;
+let cachedPromise = null;
 
 // Helper to sanitize URIs and error strings (masking password)
 const maskCredentials = (str) => {
@@ -113,8 +114,11 @@ const getSafeDbStatus = () => {
 
 const connectDB = async () => {
   try {
-    if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
-      return;
+    if (mongoose.connection.readyState === 1) {
+      return mongoose.connection;
+    }
+    if (cachedPromise) {
+      return cachedPromise;
     }
 
     const isProd = process.env.NODE_ENV === 'production';
@@ -124,7 +128,7 @@ const connectDB = async () => {
       const msg = 'No MongoDB connection string found. MONGODB_URI is unconfigured.';
       lastConnectionError = {
         message: msg,
-        hint: 'In Render Dashboard -> Environment: Add MONGODB_URI pointing to your MongoDB Atlas cluster.',
+        hint: 'In Vercel / Render Dashboard -> Environment: Add MONGODB_URI pointing to your MongoDB Atlas cluster.',
         time: new Date().toISOString()
       };
       if (isProd) {
@@ -143,7 +147,7 @@ const connectDB = async () => {
         const msg = 'MONGODB_URI points to localhost/127.0.0.1, which is unreachable from cloud hosting.';
         lastConnectionError = {
           message: msg,
-          hint: 'Update MONGODB_URI in Render Dashboard to a remote MongoDB Atlas cluster URI.',
+          hint: 'Update MONGODB_URI in Vercel / Render Dashboard to a remote MongoDB Atlas cluster URI.',
           time: new Date().toISOString()
         };
         logger.error(`[DATABASE CONFIG ERROR] ${msg}`);
@@ -162,14 +166,22 @@ const connectDB = async () => {
       }
     }
 
-    await mongoose.connect(mongoURI, {
+    cachedPromise = mongoose.connect(mongoURI, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 10000,
       family: 4
+    }).then(conn => {
+      cachedPromise = null;
+      lastConnectionError = null;
+      return conn;
+    }).catch(err => {
+      cachedPromise = null;
+      throw err;
     });
 
-    lastConnectionError = null;
+    await cachedPromise;
+
     if (reconnectInterval) {
       clearInterval(reconnectInterval);
       reconnectInterval = null;
@@ -195,7 +207,8 @@ const connectDB = async () => {
     logger.error(`MongoDB connection error: ${cleanMsg}`);
     logger.warn(`Diagnostic Hint: ${hint}`);
 
-    if (!reconnectInterval && process.env.NODE_ENV !== 'test') {
+    // In serverless environments (Vercel), background intervals must not run
+    if (!reconnectInterval && process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
       reconnectInterval = setInterval(async () => {
         if (mongoose.connection.readyState === 0) {
           try {

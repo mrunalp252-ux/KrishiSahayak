@@ -4,11 +4,16 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const appConfig = require('../config/app');
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '..', appConfig.uploadDir);
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Ensure upload directory exists (use /tmp/uploads on Vercel/serverless where project root is read-only)
+const uploadDir = process.env.VERCEL
+  ? path.join('/tmp', 'uploads')
+  : path.join(__dirname, '..', appConfig.uploadDir);
+
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (e) {}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

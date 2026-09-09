@@ -68,8 +68,9 @@ exports.chat = async (req, res) => {
   } catch (err) {
     logger.error('AI chat controller error:', err.message);
     const isUnconfigured = err.message.includes('not configured');
-    const isBusy = err.message.includes('busy');
-    const status = isUnconfigured ? 503 : (isBusy ? 429 : 500);
+    const isBusy = err.message.includes('busy') || err.message.includes('quota') || err.message.includes('rate limited');
+    const isAuth = err.message.includes('authentication failed');
+    const status = isUnconfigured ? 503 : (isAuth ? 401 : (isBusy ? 429 : 500));
     return res.status(status).json(error(err.message));
   }
 };

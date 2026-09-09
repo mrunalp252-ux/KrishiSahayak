@@ -39,6 +39,16 @@ const mongoose = require('mongoose');
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, appConfig.uploadDir)));
 
+// Serverless DB connection assurance
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState === 0) {
+    try {
+      await connectDB();
+    } catch (e) {}
+  }
+  next();
+});
+
 // Serve frontend static files
 let frontendPath = path.join(__dirname, '..', 'frontend');
 if (!fs.existsSync(frontendPath)) {
@@ -105,7 +115,7 @@ process.on('unhandledRejection', (err) => {
   process.exit(1);
 });
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   const server = app.listen(appConfig.port, '0.0.0.0', () => {
     logger.info(`Server running in ${appConfig.nodeEnv} mode on port ${appConfig.port}`);
     if (appConfig.nodeEnv !== 'production') {

@@ -1,7 +1,7 @@
 // js/api.js
 
 window.API = {
-    BASE_URL: (window.location.origin || 'http://localhost:5000') + '/api',
+    BASE_URL: window.API_BASE_URL || (window.location.origin || 'http://localhost:5000') + '/api',
 
     async request(endpoint, options = {}) {
         const url = `${this.BASE_URL}${endpoint}`;

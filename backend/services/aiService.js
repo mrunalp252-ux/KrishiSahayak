@@ -41,7 +41,7 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
   getModel() {
     const provider = this.getProvider();
     if (provider === 'gemini') {
-      return process.env.GEMINI_MODEL || 'gemini-3.7-flash';
+      return process.env.GEMINI_MODEL || 'gemini-3.8-flash';
     } else if (provider === 'openai') {
       return process.env.OPENAI_MODEL || 'gpt-4o-mini';
     }
@@ -83,7 +83,8 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
   async _chatGemini(messages, options = {}) {
     const apiKey = this.getApiKey();
     const languageNote = this._getLanguageInstruction(options.language);
-    const endpoint = this.getApiEndpoint();
+    let model = this.getModel();
+    const baseUrl = (process.env.GEMINI_API_URL || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/+$/, '');
     
     const formattedMessages = messages.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -94,7 +95,7 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
       system_instruction: { parts: [{ text: this.systemInstruction + languageNote }] },
       contents: formattedMessages,
       generationConfig: {
-        maxOutputTokens: 800,
+        maxOutputTokens: 2048,
         temperature: 0.7
       }
     };
@@ -104,20 +105,34 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
       'x-goog-api-key': apiKey
     };
 
-    const maxAttempts = 2;
+    const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const endpoint = `${baseUrl}/models/${model}:generateContent`;
       try {
         const response = await axios.post(endpoint, payload, { headers, timeout: 60000 });
         
-        if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-          return response.data.candidates[0].content.parts[0].text.trim();
+        const parts = response.data?.candidates?.[0]?.content?.parts || [];
+        const textParts = parts.filter(p => p.text && !p.thought).map(p => p.text);
+        if (textParts.length > 0) {
+          return textParts.join('\n').trim();
+        }
+        if (parts[0]?.text) {
+          return parts[0].text.trim();
         }
         throw new Error('Invalid response structure from Gemini API');
       } catch (err) {
+        // If quota exhausted (429) on an alternate model, attempt fallback to gemini-3.8-flash
+        if (err.response?.status === 429 && model !== 'gemini-3.8-flash' && attempt < maxAttempts) {
+          logger.warn(`Gemini model ${model} reached quota limit. Retrying with gemini-3.8-flash...`);
+          model = 'gemini-3.8-flash';
+          continue;
+        }
+
         const isTransient = err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.response?.status === 503;
         if (isTransient && attempt < maxAttempts) {
-          logger.warn(`Gemini transient issue (${err.message || err.code}), retrying attempt ${attempt + 1}...`);
-          await new Promise(r => setTimeout(r, 1500));
+          const delayMs = 2000 * attempt;
+          logger.warn(`Gemini transient issue (${err.message || err.code}), retrying attempt ${attempt + 1} in ${delayMs}ms...`);
+          await new Promise(r => setTimeout(r, delayMs));
           continue;
         }
         this._handleApiError('Gemini', err);
@@ -255,7 +270,10 @@ Do not give specific pesticide dosage instructions.` }]
     if (err.code === 'ECONNABORTED' || (err.message && err.message.includes('timeout'))) {
       throw new Error('AI service request timed out. Please try again.');
     }
-    if (err.response?.status === 429 || err.response?.status === 503) {
+    if (err.response?.status === 429) {
+      throw new Error('AI service quota limit reached or rate limited. Please try again in a moment.');
+    }
+    if (err.response?.status === 503) {
       throw new Error('AI service is temporarily busy due to high demand. Please try again in a moment.');
     }
     if (err.response?.status === 401 || err.response?.status === 403) {

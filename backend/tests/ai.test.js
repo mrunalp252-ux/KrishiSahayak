@@ -25,7 +25,7 @@ describe('AI Assistant Configuration & Endpoints', () => {
     });
 
     it('should detect default Gemini model', () => {
-      expect(aiService.getModel()).toBe(process.env.GEMINI_MODEL || 'gemini-3.7-flash');
+      expect(aiService.getModel()).toBe(process.env.GEMINI_MODEL || 'gemini-3.8-flash');
     });
 
     it('should construct correct Gemini API endpoint', () => {
