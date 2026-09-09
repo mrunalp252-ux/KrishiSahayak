@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: krishi-sahayak
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 15m
+      - key: JWT_REFRESH_EXPIRE
+        value: 7d
+      - key: AI_PROVIDER
+        value: gemini
+      - key: AI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.7-flash
+      - key: WEATHER_API_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

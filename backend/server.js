@@ -33,16 +33,29 @@ app.use(sanitize);
 app.use(requestLogger);
 app.use(apiLimiter);
 
+const fs = require('fs');
+const mongoose = require('mongoose');
+
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, appConfig.uploadDir)));
 
 // Serve frontend static files
-const frontendPath = path.join(__dirname, '..', 'frontend');
+let frontendPath = path.join(__dirname, '..', 'frontend');
+if (!fs.existsSync(frontendPath)) {
+  frontendPath = path.join(__dirname, 'frontend');
+}
 app.use(express.static(frontendPath));
 
-// Health check route
+// Health check route suitable for deployment monitoring
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', version: appConfig.appVersion });
+  const dbState = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.status(200).json({
+    status: 'OK',
+    database: dbState,
+    version: appConfig.appVersion,
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Mount API routes
@@ -50,7 +63,10 @@ app.use('/api', require('./routes'));
 
 // Serve frontend pages (SPA fallback for HTML pages)
 app.get('/pages/*', (req, res) => {
-  const requestedPage = path.join(frontendPath, req.path);
+  let requestedPage = path.join(frontendPath, req.path);
+  if (!path.extname(requestedPage) && fs.existsSync(requestedPage + '.html')) {
+    requestedPage = requestedPage + '.html';
+  }
   res.sendFile(requestedPage, (err) => {
     if (err) {
       res.status(404).send('Page not found');
@@ -79,11 +95,40 @@ process.on('unhandledRejection', (err) => {
 });
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(appConfig.port, () => {
+  const server = app.listen(appConfig.port, '0.0.0.0', () => {
     logger.info(`Server running in ${appConfig.nodeEnv} mode on port ${appConfig.port}`);
-    logger.info(`Frontend: http://localhost:${appConfig.port}`);
-    logger.info(`API: http://localhost:${appConfig.port}/api`);
+    if (appConfig.nodeEnv !== 'production') {
+      logger.info(`Frontend: http://localhost:${appConfig.port}`);
+      logger.info(`API: http://localhost:${appConfig.port}/api`);
+    } else {
+      logger.info(`Bound to 0.0.0.0:${appConfig.port}`);
+    }
   });
+
+  const gracefulShutdown = (signal) => {
+    logger.info(`${signal} received: closing HTTP server and database connections gracefully`);
+    server.close(async () => {
+      logger.info('HTTP server closed');
+      try {
+        if (mongoose.connection.readyState !== 0) {
+          await mongoose.connection.close(false);
+          logger.info('MongoDB connection closed gracefully');
+        }
+      } catch (err) {
+        logger.error('Error closing MongoDB connection:', err);
+      }
+      process.exit(0);
+    });
+
+    // Force close after 10s timeout
+    setTimeout(() => {
+      logger.error('Could not close connections in time, forcefully shutting down');
+      process.exit(1);
+    }, 10000);
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 module.exports = app;

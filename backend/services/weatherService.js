@@ -64,12 +64,31 @@ class WeatherService {
   }
 
   async _callApi(endpoint, params) {
-    if (!process.env.WEATHER_API_KEY) throw new Error('Weather API key not configured');
-    const res = await axios.get(`https://api.openweathermap.org/data/2.5${endpoint}`, {
-      params: { ...params, appid: process.env.WEATHER_API_KEY, units: 'metric' },
-      timeout: 5000
-    });
-    return res.data;
+    const apiKey = (process.env.WEATHER_API_KEY || process.env.OPENWEATHER_API_KEY || '').trim();
+    if (!apiKey) throw new Error('Weather API key not configured');
+
+    const baseUrl = (process.env.WEATHER_API_URL || 'https://api.openweathermap.org/data/2.5').replace(/\/+$/, '');
+
+    let lastError;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const res = await axios.get(`${baseUrl}${endpoint}`, {
+          params: { ...params, appid: apiKey, units: 'metric' },
+          timeout: 6000
+        });
+        return res.data;
+      } catch (err) {
+        lastError = err;
+        const isTransient = err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND';
+        if (isTransient && attempt < 2) {
+          logger.warn(`Weather API transient error (${err.message}), retrying attempt 2...`);
+          await new Promise(r => setTimeout(r, 1000));
+          continue;
+        }
+        break;
+      }
+    }
+    throw lastError;
   }
 
   _formatCurrentWeather(data) {
