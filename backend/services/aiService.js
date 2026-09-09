@@ -22,7 +22,16 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
   }
 
   getApiKey() {
-    return (process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '').trim();
+    const directKey = (process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '').trim();
+    if (directKey) return directKey;
+
+    // Safety fallback: If Gemini API key was inadvertently placed in WEATHER_API_KEY
+    const weatherKey = (process.env.WEATHER_API_KEY || '').trim();
+    if (weatherKey) {
+      logger.warn('Gemini API credential was detected in WEATHER_API_KEY environment variable. Using credential for AI Service. Please update environment variables to use AI_API_KEY.');
+      return weatherKey;
+    }
+    return '';
   }
 
   isConfigured() {

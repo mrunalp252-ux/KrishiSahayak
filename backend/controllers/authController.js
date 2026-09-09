@@ -1,10 +1,18 @@
 const logger = require('../utils/logger');
+const mongoose = require('mongoose');
 const authService = require('../services/authService');
 const auditService = require('../services/auditService');
 const emailService = require('../services/emailService');
 
 exports.register = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database service is currently unavailable. Please verify MONGODB_URI and MongoDB Atlas network access.'
+      });
+    }
+
     const payload = { ...req.body };
     if (!payload.mobile || typeof payload.mobile !== 'string' || payload.mobile.trim() === '') {
       delete payload.mobile;
@@ -59,6 +67,13 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: 'Database service is currently unavailable. Please verify MONGODB_URI and MongoDB Atlas network access.'
+      });
+    }
+
     const { email, password } = req.body;
     const result = await authService.login(email, password);
 

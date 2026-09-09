@@ -87,7 +87,7 @@ JWT_REFRESH_SECRET=your_jwt_refresh_secret_here
 AI_PROVIDER=gemini
 AI_API_KEY=your_gemini_api_key_from_google_ai_studio
 GEMINI_MODEL=gemini-3.7-flash
-WEATHER_API_KEY=your_openweather_api_key
+# Weather is powered by Open-Meteo (keyless - no API key required)
 FRONTEND_URL=http://localhost:3000
 ```
 

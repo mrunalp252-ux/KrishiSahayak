@@ -1,5 +1,6 @@
 const { success, error } = require('../utils/apiResponse');
 const logger = require('../utils/logger');
+const mongoose = require('mongoose');
 const aiService = require('../services/aiService');
 const imageAnalysisService = require('../services/imageAnalysisService');
 const AIConversation = require('../models/AIConversation');
@@ -19,33 +20,49 @@ exports.chat = async (req, res) => {
       return res.status(503).json(error('AI service is not configured. Please set AI_API_KEY in environment variables.'));
     }
 
-    let conversation;
-    if (conversationId) {
-      conversation = await AIConversation.findOne({ _id: conversationId, user: req.user._id });
-    }
-    if (!conversation) {
-      conversation = await AIConversation.create({ user: req.user._id, messages: [] });
+    let conversation = null;
+    if (mongoose.connection.readyState === 1) {
+      try {
+        if (conversationId) {
+          conversation = await AIConversation.findOne({ _id: conversationId, user: req.user._id });
+        }
+        if (!conversation) {
+          conversation = await AIConversation.create({ user: req.user._id, messages: [] });
+        }
+      } catch (dbErr) {
+        logger.warn('Could not load AI conversation from DB:', dbErr.message);
+      }
     }
 
-    conversation.messages.push({ role: 'user', content: message.trim() });
+    if (conversation) {
+      conversation.messages.push({ role: 'user', content: message.trim() });
+    }
     
     const userLang = language || req.user?.preferredLanguage || 'en';
-    const recentMessages = conversation.messages.slice(-10);
+    const recentMessages = conversation ? conversation.messages.slice(-10) : [{ role: 'user', content: message.trim() }];
     const responseText = await aiService.chat(recentMessages, { language: userLang });
     
-    conversation.messages.push({ role: 'assistant', content: responseText });
-    await conversation.save();
+    if (conversation) {
+      try {
+        conversation.messages.push({ role: 'assistant', content: responseText });
+        await conversation.save();
+      } catch (saveErr) {
+        logger.warn('Could not save AI conversation reply to DB:', saveErr.message);
+      }
+    }
+
+    const conversationIdVal = conversation ? conversation._id : null;
 
     return res.json({
       success: true,
       message: 'Response',
       response: responseText,
       reply: responseText,
-      conversationId: conversation._id,
+      conversationId: conversationIdVal,
       data: {
         response: responseText,
         reply: responseText,
-        conversationId: conversation._id 
+        conversationId: conversationIdVal 
       }
     });
   } catch (err) {

@@ -48,10 +48,21 @@ app.use(express.static(frontendPath));
 
 // Health check route suitable for deployment monitoring
 app.get('/health', (req, res) => {
-  const dbState = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  const dbStatus = connectDB.getSafeDbStatus ? connectDB.getSafeDbStatus() : { state: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' };
   res.status(200).json({
     status: 'OK',
-    database: dbState,
+    database: dbStatus.state,
+    dbDetails: dbStatus,
+    services: {
+      ai: {
+        configured: Boolean(process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.WEATHER_API_KEY),
+        provider: process.env.AI_PROVIDER || 'gemini'
+      },
+      weather: {
+        provider: 'open-meteo',
+        keyless: true
+      }
+    },
     version: appConfig.appVersion,
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
