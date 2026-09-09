@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krishi Sahayak - Smart Farming, Better Future</title>
+  <meta name="description"
+    content="Krishi Sahayak is an AI-powered smart agriculture platform for Indian farmers. Get crop recommendations, weather forecasts, market prices, and expert guidance.">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+
+<body>
+  <div class="app-layout" style="display: block;">
+    <!-- Public Header -->
+    <header class="topbar" style="position: fixed; width: 100%; top: 0; background: var(--surface); z-index: 100;">
+      <div class="topbar-left">
+        <h1 class="page-title" style="color: var(--primary);">🌱 Krishi Sahayak</h1>
+      </div>
+      <div class="topbar-right">
+        <select class="language-selector" aria-label="Select Language">
+          <option value="en">English</option>
+          <option value="mr">मराठी</option>
+          <option value="hi">हिंदी</option>
+        </select>
+        <button class="theme-toggle" aria-label="Toggle Theme">🌙</button>
+        <a href="/pages/login.html" class="btn btn-primary" data-i18n="login">Login</a>
+      </div>
+    </header>
+
+    <main style="padding-top: 80px;">
+      <!-- Hero Section -->
+      <section style="text-align: center; padding: 4rem 1rem; background: var(--bg-color);">
+        <h1 style="font-size: 3rem; color: var(--primary-dark);" data-i18n="hero_title">Smart Farming, Better Future
+        </h1>
+        <h2 style="color: var(--text-secondary); margin-bottom: 2rem;" data-i18n="hero_subtitle">हुशार शेती, उज्वल
+          भविष्य</h2>
+        <a href="/pages/register.html" class="btn btn-primary btn-lg" data-i18n="get_started">Get Started</a>
+      </section>
+
+      <!-- Features Section -->
+      <section class="main-content" style="padding: 4rem 1rem;">
+        <h2 class="text-center mb-4" data-i18n="features">Our Features</h2>
+        <div class="grid-3">
+          <div class="card text-center">
+            <div class="stat-icon mb-2" style="display: inline-block;">🌤️</div>
+            <h3 data-i18n="feat_weather">Weather Forecasts</h3>
+            <p data-i18n="feat_weather_desc">Get accurate localized weather predictions to plan your farming activities.
+            </p>
+          </div>
+          <div class="card text-center">
+            <div class="stat-icon mb-2" style="display: inline-block;">📈</div>
+            <h3 data-i18n="feat_market">Market Prices</h3>
+            <p data-i18n="feat_market_desc">Stay updated with real-time crop prices across various mandis.</p>
+          </div>
+          <div class="card text-center">
+            <div class="stat-icon mb-2" style="display: inline-block;">🤖</div>
+            <h3 data-i18n="feat_ai">AI Assistant</h3>
+            <p data-i18n="feat_ai_desc">Instant answers to your farming queries in your preferred language.</p>
+          </div>
+          <div class="card text-center">
+            <div class="stat-icon mb-2" style="display: inline-block;">🌱</div>
+            <h3 data-i18n="feat_crop">Crop Recommendations</h3>
+            <p data-i18n="feat_crop_desc">Data-driven suggestions on what to plant based on soil and weather.</p>
+          </div>
+          <div class="card text-center">
+            <div class="stat-icon mb-2" style="display: inline-block;">📅</div>
+            <h3 data-i18n="feat_plan">Farm Planning</h3>
+            <p data-i18n="feat_plan_desc">Organize and track your farm activities throughout the season.</p>
+          </div>
+          <div class="card text-center">
+            <div class="stat-icon mb-2" style="display: inline-block;">🐛</div>
+            <h3 data-i18n="feat_pest">Pest & Disease Library</h3>
+            <p data-i18n="feat_pest_desc">Identify and manage crop pests and diseases with expert guidance.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer style="background: var(--primary-dark); color: white; padding: 2rem; text-align: center;">
+      <p>&copy; 2026 Krishi Sahayak. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/router.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+
+</html>

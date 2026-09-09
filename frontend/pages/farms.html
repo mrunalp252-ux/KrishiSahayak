@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Farms - Krishi Sahayak</title>
+  <meta name="description" content="My Farms - Smart Agriculture Platform for Indian Farmers">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">🌱 Krishi Sahayak</div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Main</div>
+        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+        <a href="farms.html" class="nav-item">🌾 My Farms</a>
+        <a href="crop-recommendation.html" class="nav-item">🌱 Crop Recommendation</a>
+        <a href="farm-planner.html" class="nav-item">📅 Farm Planner</a>
+        <a href="ai-assistant.html" class="nav-item">🤖 AI Assistant</a>
+        <div class="nav-section">Information</div>
+        <a href="weather.html" class="nav-item">🌤️ Weather</a>
+        <a href="market-prices.html" class="nav-item">📈 Market Prices</a>
+        <a href="pests-diseases.html" class="nav-item">🐛 Pests & Diseases</a>
+        <a href="fertilizer-guide.html" class="nav-item">🧪 Fertilizer Guide</a>
+        <a href="cultivation-guides.html" class="nav-item">📖 Cultivation Guides</a>
+        <a href="advisories.html" class="nav-item">📢 Advisories</a>
+        <div class="nav-section">Account</div>
+        <a href="notifications.html" class="nav-item">🔔 Notifications</a>
+        <a href="profile.html" class="nav-item">👤 Profile</a>
+        <div class="nav-section expert-only">Expert</div>
+        <a href="expert-dashboard.html" class="nav-item expert-only">🎓 Expert Dashboard</a>
+        <div class="nav-section admin-only">Admin</div>
+        <a href="admin-dashboard.html" class="nav-item admin-only">🛡️ Admin Dashboard</a>
+        <a href="admin-crud.html" class="nav-item admin-only">📋 Manage Data</a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="logout-btn" id="logout-btn">🚪 Logout</button>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger" id="hamburger">☰</button>
+          <h2 class="page-title">My Farms</h2>
+        </div>
+        <div class="topbar-right">
+          <select class="language-selector" aria-label="Select Language">
+            <option value="en">EN</option>
+            <option value="mr">MR</option>
+            <option value="hi">HI</option>
+          </select>
+          <button class="theme-toggle" aria-label="Toggle Theme">🌙</button>
+          <a href="notifications.html" class="topbar-icon" style="text-decoration: none; position: relative;">
+            🔔<span class="notification-badge" style="display:none">0</span>
+          </a>
+          <a href="profile.html" class="avatar" id="topbar-avatar">U</a>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <div class="page-header">
+          <h2 data-i18n="manage_farms">Manage Your Farms</h2>
+          <button class="btn btn-primary" id="add-farm-btn">➕ Add Farm</button>
+        </div>
+
+        <div class="grid-3" id="farms-container">
+          <div class="empty-state"><p>Loading farms...</p></div>
+        </div>
+        <div id="farms-pagination"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/router.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/voice.js"></script>
+  <script src="/js/pages/farms.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
