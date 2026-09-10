@@ -78,7 +78,7 @@ exports.chat = async (req, res) => {
 exports.getConversations = async (req, res) => {
   try {
     const docs = await AIConversation.find({ user: req.user._id }).select('-messages').sort({ updatedAt: -1 });
-    return res.json(success('Conversations', { data: docs }));
+    return res.json(success('Conversations', docs));
   } catch (err) {
     return res.status(500).json(error(err.message));
   }
@@ -88,7 +88,7 @@ exports.getConversation = async (req, res) => {
   try {
     const doc = await AIConversation.findOne({ _id: req.params.id, user: req.user._id });
     if (!doc) return res.status(404).json(error('Conversation not found'));
-    return res.json(success('Conversation', { data: doc }));
+    return res.json(success('Conversation', doc));
   } catch (err) {
     return res.status(500).json(error(err.message));
   }

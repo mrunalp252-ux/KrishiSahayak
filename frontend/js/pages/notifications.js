@@ -28,7 +28,9 @@
 
             try {
                 const res = await window.API.get(`/notifications?page=${this.currentPage}&limit=${this.limit}`);
-                const notifications = res.notifications || res.data || [];
+                const notifications = (res && Array.isArray(res.notifications)) 
+                    ? res.notifications 
+                    : ((res && Array.isArray(res.data)) ? res.data : ((res && res.data && Array.isArray(res.data.data)) ? res.data.data : []));
                 const pagination = res.pagination || {
                     page: this.currentPage,
                     limit: this.limit,

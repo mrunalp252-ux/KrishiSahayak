@@ -47,7 +47,8 @@
         },
 
         renderCurrentWeather(res) {
-            const data = res.data || res.weather || res;
+            const raw = res.data || res.weather || res || {};
+            const data = (raw && raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)) ? raw.data : raw;
 
             const locEl = document.getElementById('weather-location');
             const timeEl = document.getElementById('weather-time');
@@ -60,7 +61,7 @@
             const sourceEl = document.getElementById('weather-source');
 
             const location = data.city || data.location || data.name || 'Maharashtra Agromet Zone';
-            const temp = Math.round(data.temperature || data.temp || 28);
+            const temp = Math.round(data.temperature != null ? data.temperature : (data.temp != null ? data.temp : 28));
             const condition = data.description || data.condition || 'Partly Cloudy';
             const humidity = data.humidity != null ? data.humidity : 65;
             const wind = data.windSpeed || (data.wind && data.wind.speed) || 12;
@@ -78,9 +79,9 @@
 
             if (sourceEl) {
                 if (data.isLive) {
-                    sourceEl.innerHTML = `🟢 Live satellite weather data courtesy of OpenWeatherMap`;
+                    sourceEl.innerHTML = `🟢 Live Open-Meteo Agro-Meteorological Satellite Data`;
                 } else {
-                    sourceEl.innerHTML = `📡 Krishi Sahayak Agromet Forecasting Engine (Offline Mode)`;
+                    sourceEl.innerHTML = `📡 Krishi Sahayak Agromet Forecasting Engine`;
                 }
             }
         },
@@ -96,6 +97,12 @@
                 forecastList = res.days;
             } else if (res.data && Array.isArray(res.data)) {
                 forecastList = res.data;
+            } else if (res.data && Array.isArray(res.data.forecast)) {
+                forecastList = res.data.forecast;
+            } else if (res.data && Array.isArray(res.data.days)) {
+                forecastList = res.data.days;
+            } else if (res.data && Array.isArray(res.data.data)) {
+                forecastList = res.data.data;
             } else if (Array.isArray(res)) {
                 forecastList = res;
             }

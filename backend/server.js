@@ -3,6 +3,8 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const mongoose = require('mongoose');
 
 const connectDB = require('./config/database');
 const corsOptions = require('./config/cors');
@@ -12,9 +14,20 @@ const requestLogger = require('./middleware/requestLogger');
 const errorHandler = require('./middleware/errorHandler');
 const sanitize = require('./middleware/sanitize');
 const logger = require('./utils/logger');
+const bootstrap = require('./utils/bootstrap');
 
-// Connect to Database
-connectDB();
+// Connect to Database and initialize bootstrap
+if (process.env.NODE_ENV !== 'test') {
+  connectDB().then(() => {
+    if (mongoose.connection.readyState === 1) {
+      bootstrap().catch(err => logger.warn(`Initial bootstrap warning: ${err.message}`));
+    }
+  }).catch(() => {});
+
+  mongoose.connection.on('connected', () => {
+    bootstrap().catch(err => logger.warn(`Connected bootstrap warning: ${err.message}`));
+  });
+}
 
 const app = express();
 
@@ -32,10 +45,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(sanitize);
 app.use(requestLogger);
 app.use(apiLimiter);
-
-const fs = require('fs');
-const mongoose = require('mongoose');
-
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, appConfig.uploadDir)));
 
@@ -44,6 +53,7 @@ app.use(async (req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
     try {
       await connectDB();
+      bootstrap().catch(() => {});
     } catch (e) {}
   }
   next();

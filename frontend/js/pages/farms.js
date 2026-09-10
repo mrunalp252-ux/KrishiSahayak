@@ -1,4 +1,5 @@
 // js/pages/farms.js
+window.PageModules = window.PageModules || {};
 
 window.PageModules.farms = {
     currentPage: 1,

@@ -1,5 +1,7 @@
 // js/pages/dashboard.js
 
+window.PageModules = window.PageModules || {};
+
 window.PageModules.dashboard = {
     async init() {
         this.setDate();
@@ -48,14 +50,19 @@ window.PageModules.dashboard = {
             const cropEl = document.getElementById('stat-crops');
             if (cropEl) cropEl.textContent = activeCrops;
         } catch(e) {
-            console.error('Stats error:', e);
+            console.warn('Stats error:', e);
+            const el = document.getElementById('stat-farms');
+            if (el) el.textContent = '0';
+            const cropEl = document.getElementById('stat-crops');
+            if (cropEl) cropEl.textContent = '0';
         }
 
         // Try weather (with graceful fallback to central agromet zone)
-        const updateWeatherUI = (wd) => {
+        const updateWeatherUI = (raw) => {
             const tempEl = document.getElementById('stat-weather');
             const descEl = document.getElementById('stat-weather-desc');
-            const temp = Math.round(wd.temperature || wd.temp || 28);
+            const wd = (raw && raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)) ? raw.data : (raw || {});
+            const temp = Math.round(wd.temperature != null ? wd.temperature : (wd.temp != null ? wd.temp : 28));
             const desc = wd.description || wd.condition || 'Clear Sky';
             if (tempEl) tempEl.textContent = `${temp}°C`;
             if (descEl) descEl.textContent = desc.charAt(0).toUpperCase() + desc.slice(1);
@@ -84,10 +91,15 @@ window.PageModules.dashboard = {
         // Try advisories count
         try {
             const advResult = await window.API.get('/advisories?limit=1');
-            const total = (advResult.pagination && advResult.pagination.total) || (advResult.advisories && advResult.advisories.length) || 0;
+            const total = (advResult.pagination && advResult.pagination.total != null) 
+                ? advResult.pagination.total 
+                : (Array.isArray(advResult.advisories) ? advResult.advisories.length : (Array.isArray(advResult.data) ? advResult.data.length : 0));
             const el = document.getElementById('stat-advisories');
             if (el) el.textContent = total;
-        } catch(e) {}
+        } catch(e) {
+            const el = document.getElementById('stat-advisories');
+            if (el) el.textContent = '0';
+        }
     },
 
     async loadRecentActivities() {
@@ -96,7 +108,9 @@ window.PageModules.dashboard = {
         
         try {
             const result = await window.API.get('/farm-activities', { limit: 5, sort: '-scheduledDate' });
-            const activities = result.data || result || [];
+            const activities = (result && Array.isArray(result.data)) 
+                ? result.data 
+                : ((result && Array.isArray(result.activities)) ? result.activities : (Array.isArray(result) ? result : []));
             
             if (!Array.isArray(activities) || activities.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No recent activities. Plan your farm activities using the Farm Planner.</p></div>';
@@ -110,7 +124,7 @@ window.PageModules.dashboard = {
                 </div>
             `).join('');
         } catch(e) {
-            container.innerHTML = '<div class="empty-state"><p>Could not load activities.</p></div>';
+            container.innerHTML = '<div class="empty-state"><p>No recent activities found. Use Farm Planner to schedule tasks.</p></div>';
         }
     },
 
@@ -120,23 +134,25 @@ window.PageModules.dashboard = {
         
         try {
             const result = await window.API.get('/advisories?limit=3');
-            const advisories = result.advisories || result.data || (Array.isArray(result) ? result : []);
+            const advisories = (result && Array.isArray(result.advisories)) 
+                ? result.advisories 
+                : ((result && Array.isArray(result.data)) ? result.data : (Array.isArray(result) ? result : []));
             
             if (!Array.isArray(advisories) || advisories.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p>No active advisories.</p></div>';
+                container.innerHTML = '<div class="empty-state"><p>No active advisories for your region currently.</p></div>';
                 return;
             }
             
-            const severityColors = { high: 'var(--error)', medium: 'var(--warning)', low: 'var(--info)' };
+            const severityColors = { high: 'var(--error)', critical: 'var(--error)', warning: 'var(--warning)', medium: 'var(--warning)', low: 'var(--info)', info: 'var(--info)' };
             container.innerHTML = advisories.map(adv => `
                 <div style="border-left: 4px solid ${severityColors[adv.severity] || 'var(--info)'}; padding-left: 1rem; margin-bottom: 1rem;">
                     <h4 style="margin-bottom: 0.25rem;">${window.Utils.sanitizeHtml(adv.title)}</h4>
                     <p class="text-secondary mb-1">${window.Utils.truncate(adv.message || '', 100)}</p>
-                    <span class="badge badge-${adv.severity === 'high' ? 'error' : adv.severity === 'medium' ? 'warning' : 'primary'}">${window.Utils.formatLabel ? window.Utils.formatLabel(adv.severity || 'info') : 'Info'} Priority</span>
+                    <span class="badge badge-${(adv.severity === 'high' || adv.severity === 'critical') ? 'error' : (adv.severity === 'warning' || adv.severity === 'medium') ? 'warning' : 'primary'}">${window.Utils.formatLabel ? window.Utils.formatLabel(adv.severity || 'info') : 'Info'} Priority</span>
                 </div>
             `).join('');
         } catch(e) {
-            container.innerHTML = '<div class="empty-state"><p>Could not load advisories.</p></div>';
+            container.innerHTML = '<div class="empty-state"><p>No active advisories currently.</p></div>';
         }
     }
 };

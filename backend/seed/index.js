@@ -8,6 +8,7 @@ const seedDiseases = require('./seedDiseases');
 const seedFertilizers = require('./seedFertilizers');
 const seedGuides = require('./seedGuides');
 const seedMarketPrices = require('./seedMarketPrices');
+const seedAdvisories = require('./seedAdvisories');
 
 async function runSeed() {
   try {
@@ -25,6 +26,7 @@ async function runSeed() {
     await seedFertilizers();
     await seedGuides();
     await seedMarketPrices();
+    await seedAdvisories();
 
     console.log('--- Database Seeding Completed Successfully ---');
   } catch (error) {

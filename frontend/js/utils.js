@@ -1,4 +1,5 @@
 // js/utils.js
+window.PageModules = window.PageModules || {};
 
 window.Utils = {
     showToast(message, type = 'info', duration = 3000) {
