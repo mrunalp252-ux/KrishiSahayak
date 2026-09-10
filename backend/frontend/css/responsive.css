@@ -1,0 +1,103 @@
+/* Responsive Rules */
+
+@media (max-width: 1440px) {
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .grid-4, .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  /* Sidebar handling */
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  /* Layout adjustments */
+  .grid-4, .grid-3, .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  /* Form adjustments */
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  /* Topbar */
+  .topbar-right .search-bar {
+    display: none; /* Hide search on small screens or make it an icon */
+  }
+
+  /* Table horizontal scroll */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  html, body {
+    font-size: 14px;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  /* Larger touch targets */
+  .btn {
+    padding: 0.75rem 1rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 0.75rem;
+    width: auto;
+  }
+
+  .form-control, .form-select {
+    padding: 0.875rem;
+  }
+
+  .tab-item {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}

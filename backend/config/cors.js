@@ -25,7 +25,8 @@ const corsOptions = {
     }
     const normalizedOrigin = origin.replace(/\/+$/, '');
     const isVercelOrigin = /^https:\/\/[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.vercel\.app$/.test(normalizedOrigin);
-    if (allowedOrigins.includes(normalizedOrigin) || isVercelOrigin) {
+    const isRenderOrigin = /^https:\/\/[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.onrender\.com$/.test(normalizedOrigin);
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(normalizedOrigin) || isVercelOrigin || isRenderOrigin) {
       callback(null, true);
     } else {
       callback(null, false);

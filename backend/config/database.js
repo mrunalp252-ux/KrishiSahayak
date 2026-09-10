@@ -166,12 +166,16 @@ const connectDB = async () => {
       }
     }
 
-    cachedPromise = mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000,
+    const connectOptions = {
+      serverSelectionTimeoutMS: 15000,
       socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
-      family: 4
-    }).then(conn => {
+      connectTimeoutMS: 15000,
+    };
+    if (mongoURI.includes('127.0.0.1') || mongoURI.includes('localhost')) {
+      connectOptions.family = 4;
+    }
+
+    cachedPromise = mongoose.connect(mongoURI, connectOptions).then(conn => {
       cachedPromise = null;
       lastConnectionError = null;
       return conn;

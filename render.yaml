@@ -4,9 +4,8 @@ services:
     runtime: node
     plan: free
     branch: main
-    rootDir: backend
-    buildCommand: npm install
-    startCommand: node server.js
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
@@ -29,6 +28,6 @@ services:
       - key: AI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-3.7-flash
+        value: gemini-3.8-flash
       - key: FRONTEND_URL
         sync: false

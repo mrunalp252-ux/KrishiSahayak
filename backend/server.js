@@ -39,9 +39,9 @@ const mongoose = require('mongoose');
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, appConfig.uploadDir)));
 
-// Serverless DB connection assurance
+// Serverless / Cloud DB connection assurance
 app.use(async (req, res, next) => {
-  if (mongoose.connection.readyState === 0) {
+  if (mongoose.connection.readyState !== 1) {
     try {
       await connectDB();
     } catch (e) {}

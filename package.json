@@ -5,7 +5,7 @@
   "main": "api/index.js",
   "scripts": {
     "start": "node backend/server.js",
-    "build": "echo 'Build complete'",
+    "build": "node -e \"const fs=require('fs'); const path=require('path'); const src=path.join(__dirname,'frontend'); const dst=path.join(__dirname,'backend','frontend'); if(fs.existsSync(src)){fs.cpSync(src,dst,{recursive:true});console.log('Build complete: synced frontend to backend/frontend');}\"",
     "test": "cd backend && npm test"
   },
   "dependencies": {
