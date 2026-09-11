@@ -4,7 +4,7 @@ const https = require('https');
 
 const BASE_URL = process.argv[2] || process.env.BASE_URL || 'http://localhost:5000';
 
-function request(method, path, body = null, token = null) {
+function rawRequest(method, path, body = null, token = null) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, BASE_URL);
     const isHttps = url.protocol === 'https:';
@@ -46,6 +46,22 @@ function request(method, path, body = null, token = null) {
     if (payload) req.write(payload);
     req.end();
   });
+}
+
+async function request(method, path, body = null, token = null, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await rawRequest(method, path, body, token);
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ECONNREFUSED') {
+        console.log(`   ⚠️ Network blip (${err.code}), retrying request to ${path} (${i + 1}/${retries})...`);
+        await new Promise(r => setTimeout(r, 1500));
+      } else {
+        throw err;
+      }
+    }
+  }
 }
 
 async function runTests() {
