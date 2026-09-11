@@ -1,9 +1,13 @@
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
+const backendEnvPath = path.join(__dirname, '.env');
+if (fs.existsSync(backendEnvPath)) {
+  require('dotenv').config({ path: backendEnvPath });
+}
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
 const mongoose = require('mongoose');
 
 const connectDB = require('./config/database');

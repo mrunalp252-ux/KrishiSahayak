@@ -22,16 +22,7 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
   }
 
   getApiKey() {
-    const directKey = (process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '').trim();
-    if (directKey) return directKey;
-
-    // Safety fallback: If Gemini API key was inadvertently placed in WEATHER_API_KEY
-    const weatherKey = (process.env.WEATHER_API_KEY || '').trim();
-    if (weatherKey) {
-      logger.warn('Gemini API credential was detected in WEATHER_API_KEY environment variable. Using credential for AI Service. Please update environment variables to use AI_API_KEY.');
-      return weatherKey;
-    }
-    return '';
+    return (process.env.AI_API_KEY || process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY || '').trim();
   }
 
   isConfigured() {
@@ -107,7 +98,7 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
 
     const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const endpoint = `${baseUrl}/models/${model}:generateContent`;
+      const endpoint = `${baseUrl}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
       try {
         const response = await axios.post(endpoint, payload, { headers, timeout: 60000 });
         
@@ -121,10 +112,11 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
         }
         throw new Error('Invalid response structure from Gemini API');
       } catch (err) {
-        // If quota exhausted (429) on an alternate model, attempt fallback to gemini-3.8-flash
-        if (err.response?.status === 429 && model !== 'gemini-3.8-flash' && attempt < maxAttempts) {
-          logger.warn(`Gemini model ${model} reached quota limit. Retrying with gemini-3.8-flash...`);
-          model = 'gemini-3.8-flash';
+        // If quota exhausted (429) on a model, attempt fallback to alternate supported flash model
+        if (err.response?.status === 429 && attempt < maxAttempts) {
+          const nextModel = model === 'gemini-3.8-flash' ? 'gemini-3.6-flash' : 'gemini-3.8-flash';
+          logger.warn(`Gemini model ${model} reached rate/quota limit. Retrying with ${nextModel}...`);
+          model = nextModel;
           continue;
         }
 
@@ -192,7 +184,7 @@ CRITICAL AGRICULTURAL SAFETY & CHEMICAL DIRECTIVES:
       const imageData = fs.readFileSync(filePath);
       const base64Image = imageData.toString('base64');
       const apiKey = this.getApiKey();
-      const endpoint = this.getApiEndpoint();
+      const endpoint = `${this.getApiEndpoint()}?key=${encodeURIComponent(apiKey)}`;
 
       const response = await axios.post(
         endpoint,

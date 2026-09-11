@@ -15,6 +15,17 @@ const normalizeFarmData = (req, res, next) => {
         req.body.state = req.body.location;
       }
     }
+    if ((req.body.latitude !== undefined || req.body.lat !== undefined) && (req.body.longitude !== undefined || req.body.lon !== undefined)) {
+      const lat = parseFloat(req.body.latitude !== undefined ? req.body.latitude : req.body.lat);
+      const lon = parseFloat(req.body.longitude !== undefined ? req.body.longitude : req.body.lon);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        if (!req.body.location || typeof req.body.location !== 'object') {
+          req.body.location = {};
+        }
+        req.body.location.lat = lat;
+        req.body.location.lon = lon;
+      }
+    }
     if (!req.body.district && req.body.state) req.body.district = req.body.state;
     if (!req.body.irrigationType) req.body.irrigationType = 'rainfed';
   }
@@ -26,6 +37,17 @@ const normalizeUpdateFarmData = (req, res, next) => {
     if (req.body.name && !req.body.farmName) req.body.farmName = req.body.name;
     if (req.body.size !== undefined && req.body.landSize === undefined) req.body.landSize = req.body.size;
     if (req.body.unit && !req.body.landUnit) req.body.landUnit = req.body.unit;
+    if ((req.body.latitude !== undefined || req.body.lat !== undefined) && (req.body.longitude !== undefined || req.body.lon !== undefined)) {
+      const lat = parseFloat(req.body.latitude !== undefined ? req.body.latitude : req.body.lat);
+      const lon = parseFloat(req.body.longitude !== undefined ? req.body.longitude : req.body.lon);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        if (!req.body.location || typeof req.body.location !== 'object') {
+          req.body.location = {};
+        }
+        req.body.location.lat = lat;
+        req.body.location.lon = lon;
+      }
+    }
   }
   next();
 };

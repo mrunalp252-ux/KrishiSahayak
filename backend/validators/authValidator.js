@@ -18,6 +18,16 @@ const registerValidation = [
       }
       return true;
     }),
+  body('phone')
+    .optional({ checkFalsy: true })
+    .custom((val) => {
+      if (!val || typeof val !== 'string' || val.trim() === '') return true;
+      const cleaned = val.trim().replace(/[\s\-()]/g, '');
+      if (!/^\+?[0-9]{10,15}$/.test(cleaned)) {
+        throw new Error('Invalid phone number');
+      }
+      return true;
+    }),
   body('role')
     .optional({ checkFalsy: true })
     .isIn(['farmer', 'admin', 'expert'])

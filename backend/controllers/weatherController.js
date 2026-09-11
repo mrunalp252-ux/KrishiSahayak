@@ -18,3 +18,12 @@ exports.getForecast = async (req, res) => {
     return res.status(500).json(error(err.message)); 
   } 
 };
+
+exports.getHourlyForecast = async (req, res) => {
+  try {
+    const hourly = await weatherService.getHourlyForecast(req.query.lat, req.query.lon, req.query.location || req.query.city);
+    return res.json(success('Hourly forecast', hourly));
+  } catch (err) {
+    return res.status(500).json(error(err.message));
+  }
+};

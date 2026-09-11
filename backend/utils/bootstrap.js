@@ -29,7 +29,7 @@ async function bootstrap() {
     const expertPassword = process.env.EXPERT_PASSWORD || 'Expert@123456';
 
     // 1. Bootstrap Admin user
-    let admin = await User.findOne({ email: adminEmail });
+    let admin = await User.findOne({ email: adminEmail }).select('+password');
     if (!admin) {
       admin = new User({
         name: 'System Administrator',
@@ -54,14 +54,20 @@ async function bootstrap() {
         admin.isActive = true;
         needsSave = true;
       }
+      const isPasswordMatch = await admin.comparePassword(adminPassword);
+      if (!isPasswordMatch && process.env.ADMIN_SYNC_PASSWORD !== 'false') {
+        admin.password = adminPassword;
+        needsSave = true;
+        logger.info(`[Bootstrap] Admin password synchronized to configured credentials: ${adminEmail}`);
+      }
       if (needsSave) {
         await admin.save();
-        logger.info(`[Bootstrap] Admin user role/status verified: ${adminEmail}`);
+        logger.info(`[Bootstrap] Admin user role/status/credentials verified: ${adminEmail}`);
       }
     }
 
     // 2. Bootstrap Expert user
-    let expert = await User.findOne({ email: expertEmail });
+    let expert = await User.findOne({ email: expertEmail }).select('+password');
     if (!expert) {
       expert = new User({
         name: 'Dr. Rajesh Patil (Agri Expert)',
@@ -76,10 +82,25 @@ async function bootstrap() {
       });
       await expert.save();
       logger.info(`[Bootstrap] Initial expert user created: ${expertEmail}`);
-    } else if (expert.role !== 'expert' || !expert.isActive) {
-      expert.role = 'expert';
-      expert.isActive = true;
-      await expert.save();
+    } else {
+      let needsSave = false;
+      if (expert.role !== 'expert') {
+        expert.role = 'expert';
+        needsSave = true;
+      }
+      if (!expert.isActive) {
+        expert.isActive = true;
+        needsSave = true;
+      }
+      const isExpertMatch = await expert.comparePassword(expertPassword);
+      if (!isExpertMatch && process.env.EXPERT_SYNC_PASSWORD !== 'false') {
+        expert.password = expertPassword;
+        needsSave = true;
+        logger.info(`[Bootstrap] Expert password synchronized: ${expertEmail}`);
+      }
+      if (needsSave) {
+        await expert.save();
+      }
     }
 
     // 3. Bootstrap reference collections if empty

@@ -18,13 +18,21 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     // Only allow specific fields to be updated
-    const allowedFields = ['name', 'mobile', 'state', 'district', 'village', 'language'];
+    const allowedFields = ['name', 'mobile', 'phone', 'state', 'district', 'village', 'language', 'preferredLanguage'];
     const updates = {};
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
     });
+    if (!updates.mobile && updates.phone) {
+      updates.mobile = updates.phone;
+    }
+    delete updates.phone;
+    if (updates.preferredLanguage && !updates.language) {
+      updates.language = updates.preferredLanguage;
+    }
+    delete updates.preferredLanguage;
 
     const user = await User.findByIdAndUpdate(
       req.user._id,

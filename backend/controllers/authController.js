@@ -14,11 +14,15 @@ exports.register = async (req, res) => {
     }
 
     const payload = { ...req.body };
+    if (!payload.mobile && payload.phone) {
+      payload.mobile = payload.phone;
+    }
     if (!payload.mobile || typeof payload.mobile !== 'string' || payload.mobile.trim() === '') {
       delete payload.mobile;
     } else {
       payload.mobile = payload.mobile.trim();
     }
+    delete payload.phone;
     if (payload.preferredLanguage && !payload.language) {
       payload.language = payload.preferredLanguage;
     }

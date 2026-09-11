@@ -42,6 +42,7 @@ window.PageModules.farms = {
                 </div>
                 <div class="card-body">
                     <p><strong>Location:</strong> ${window.Utils.sanitizeHtml((farm.village ? farm.village + ', ' : '') + farm.district)}</p>
+                    ${(farm.location && farm.location.lat && farm.location.lon) ? `<p><strong>GPS Location:</strong> <span class="badge badge-primary">📍 ${Number(farm.location.lat).toFixed(4)}, ${Number(farm.location.lon).toFixed(4)}</span></p>` : ''}
                     <p><strong>Area:</strong> ${farm.landSize} ${window.Utils.formatLabel(farm.landUnit || 'acres')}</p>
                     <p><strong>Soil Type:</strong> ${window.Utils.formatLabel(farm.soilType) || '-'}</p>
                     <p><strong>Irrigation:</strong> ${window.Utils.formatLabel(farm.irrigationType) || '-'}</p>
@@ -65,6 +66,9 @@ window.PageModules.farms = {
         const irrigationTypes = ['rainfed', 'canal', 'borewell', 'well', 'drip', 'sprinkler', 'flood', 'other'];
         const landUnits = ['acres', 'hectares', 'bigha', 'guntha'];
 
+        const latVal = farm?.location?.lat || '';
+        const lonVal = farm?.location?.lon || '';
+
         const html = `
             <h3 class="mb-3">${farm ? 'Edit Farm' : 'Add New Farm'}</h3>
             <form id="farm-form">
@@ -75,16 +79,30 @@ window.PageModules.farms = {
                 <div class="grid-2">
                     <div class="form-group">
                         <label class="form-label">State *</label>
-                        <input type="text" name="state" class="form-control" value="${farm?.state || ''}" required>
+                        <input type="text" name="state" id="farm-state" class="form-control" value="${farm?.state || ''}" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">District *</label>
-                        <input type="text" name="district" class="form-control" value="${farm?.district || ''}" required>
+                        <input type="text" name="district" id="farm-district" class="form-control" value="${farm?.district || ''}" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Village</label>
-                    <input type="text" name="village" class="form-control" value="${farm?.village || ''}">
+                    <input type="text" name="village" id="farm-village" class="form-control" value="${farm?.village || ''}">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" step="any" name="latitude" id="farm-lat" class="form-control" placeholder="e.g. 18.5204" value="${latVal}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" step="any" name="longitude" id="farm-lon" class="form-control" placeholder="e.g. 73.8567" value="${lonVal}">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline btn-sm" id="btn-detect-gps">📍 Detect Farm GPS Location</button>
+                    <span id="gps-status" class="text-secondary ml-2" style="font-size: 0.85rem;"></span>
                 </div>
                 <div class="grid-2">
                     <div class="form-group">
@@ -124,11 +142,42 @@ window.PageModules.farms = {
         `;
         window.Utils.showModal(html, {
             onLoad: (modal, close) => {
+                const gpsBtn = modal.querySelector('#btn-detect-gps');
+                const gpsStatus = modal.querySelector('#gps-status');
+                if (gpsBtn) {
+                    gpsBtn.onclick = () => {
+                        if (!navigator.geolocation) {
+                            if (gpsStatus) gpsStatus.textContent = 'Geolocation not supported by browser.';
+                            return;
+                        }
+                        if (gpsStatus) gpsStatus.textContent = 'Detecting coordinates...';
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                                const latInput = modal.querySelector('#farm-lat');
+                                const lonInput = modal.querySelector('#farm-lon');
+                                if (latInput) latInput.value = pos.coords.latitude.toFixed(6);
+                                if (lonInput) lonInput.value = pos.coords.longitude.toFixed(6);
+                                if (gpsStatus) gpsStatus.textContent = `Captured: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+                            },
+                            (err) => {
+                                if (gpsStatus) gpsStatus.textContent = 'Location detection unavailable. Please enter coordinates manually.';
+                            },
+                            { timeout: 6000 }
+                        );
+                    };
+                }
+
                 modal.querySelector('#farm-form').onsubmit = async (e) => {
                     e.preventDefault();
                     const formData = new FormData(e.target);
                     const data = Object.fromEntries(formData.entries());
                     data.landSize = parseFloat(data.landSize);
+                    if (data.latitude && data.longitude) {
+                        data.location = {
+                            lat: parseFloat(data.latitude),
+                            lon: parseFloat(data.longitude)
+                        };
+                    }
                     try {
                         if (farm) {
                             await window.API.put(`/farms/${farm._id}`, data);

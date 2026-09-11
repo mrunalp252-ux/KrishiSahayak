@@ -105,7 +105,7 @@ async function runTests() {
       password: 'Password@123'
     });
     const farmerToken = loginRes.body.token || loginRes.body.accessToken;
-    assert(loginRes.status === 200 && farmerToken && loginRes.body.user.role === 'farmer', '6. Farmer login (200 with user profile & token)');
+    assert(loginRes.status === 200 && farmerToken && loginRes.body.user.role === 'farmer' && loginRes.body.user.mobile === '9876543210', '6. Farmer login & phone-to-mobile normalization (200 with profile, mobile, & token)');
 
     // 7. Farmer dashboard aggregation
     const dashFarms = await request('GET', '/api/farms', null, farmerToken);
@@ -158,10 +158,14 @@ async function runTests() {
     const recs = recRes.body.recommendations || recRes.body.data?.recommendations || recRes.body.data;
     assert(recRes.status === 200 && Array.isArray(recs), `10. Crop Recommendation Engine (status 200 with recommendations array)`);
 
-    // 11. Weather service (Open-Meteo)
+    // 11. Weather service (Current, Daily Forecast, Hourly Forecast)
     const weatherRes = await request('GET', '/api/weather/current?lat=18.5204&lon=73.8567', null, farmerToken);
     const forecastRes = await request('GET', '/api/weather/forecast?lat=18.5204&lon=73.8567', null, farmerToken);
-    assert(weatherRes.status === 200 && forecastRes.status === 200, '11. Weather current & 5-day forecast endpoints (200 OK)');
+    const hourlyRes = await request('GET', '/api/weather/hourly?lat=18.5204&lon=73.8567', null, farmerToken);
+    assert(weatherRes.status === 200 && forecastRes.status === 200 && hourlyRes.status === 200, '11. Weather current, 5-day forecast, & hourly forecast endpoints (200 OK)');
+    if (weatherRes.body?.data?.source) {
+      console.log(`   ℹ️ Weather Provider Active: ${weatherRes.body.data.source}`);
+    }
 
     // 12. Fertilizer guide
     const fertRes = await request('GET', '/api/fertilizers?crop=Cotton&soil=black', null, farmerToken);

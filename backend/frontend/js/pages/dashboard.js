@@ -34,6 +34,9 @@ window.PageModules.dashboard = {
     },
 
     async loadStats() {
+        let primaryLocation = null;
+        let primaryCoords = null;
+
         try {
             const result = await window.API.get('/farms');
             const farms = result.farms || result.data || [];
@@ -44,8 +47,14 @@ window.PageModules.dashboard = {
             
             // Count active crops
             let activeCrops = 0;
-            if (Array.isArray(farms)) {
+            if (Array.isArray(farms) && farms.length > 0) {
                 activeCrops = farms.filter(f => f.currentCrop).length;
+                const f = farms[0];
+                if (f.location && f.location.lat && f.location.lon) {
+                    primaryCoords = { lat: f.location.lat, lon: f.location.lon };
+                } else if (f.district || f.village || f.state) {
+                    primaryLocation = [f.village, f.district, f.state].filter(Boolean).join(', ');
+                }
             }
             const cropEl = document.getElementById('stat-crops');
             if (cropEl) cropEl.textContent = activeCrops;
@@ -57,7 +66,7 @@ window.PageModules.dashboard = {
             if (cropEl) cropEl.textContent = '0';
         }
 
-        // Try weather (with graceful fallback to central agromet zone)
+        // Weather UI updater
         const updateWeatherUI = (raw) => {
             const tempEl = document.getElementById('stat-weather');
             const descEl = document.getElementById('stat-weather-desc');
@@ -68,24 +77,31 @@ window.PageModules.dashboard = {
             if (descEl) descEl.textContent = desc.charAt(0).toUpperCase() + desc.slice(1);
         };
 
-        const fetchWeatherWithCoords = async (lat, lon) => {
+        const fetchWeather = async (lat, lon, loc) => {
             try {
-                const weather = await window.API.get(`/weather/current?lat=${lat}&lon=${lon}`);
+                let url = `/weather/current?lat=${lat}&lon=${lon}`;
+                if (loc) url += `&location=${encodeURIComponent(loc)}`;
+                const weather = await window.API.get(url);
                 const wd = weather.data || weather.weather || weather;
                 updateWeatherUI(wd);
             } catch (err) {
-                updateWeatherUI({ temp: 28, description: 'Favorable Farming Conditions' });
+                updateWeatherUI({ temp: 28, description: 'Favorable Agromet Conditions' });
             }
         };
 
-        if (navigator.geolocation) {
+        // If user has a farm with known location, use it immediately
+        if (primaryCoords) {
+            fetchWeather(primaryCoords.lat, primaryCoords.lon, primaryLocation);
+        } else if (primaryLocation) {
+            fetchWeather(18.5204, 73.8567, primaryLocation);
+        } else if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                pos => fetchWeatherWithCoords(pos.coords.latitude, pos.coords.longitude),
-                () => fetchWeatherWithCoords(18.5204, 73.8567),
-                { timeout: 3000 }
+                pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+                () => fetchWeather(18.5204, 73.8567),
+                { timeout: 2500 }
             );
         } else {
-            fetchWeatherWithCoords(18.5204, 73.8567);
+            fetchWeather(18.5204, 73.8567);
         }
 
         // Try advisories count
