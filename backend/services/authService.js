@@ -5,7 +5,9 @@ const jwtConfig = require('../config/jwt');
 
 class AuthService {
   async register(userData) {
-    const existing = await User.findOne({ email: userData.email.toLowerCase() });
+    const cleanEmail = (userData.email || '').trim().toLowerCase();
+    userData.email = cleanEmail;
+    const existing = await User.findOne({ email: cleanEmail });
     if (existing) {
       const err = new Error('Email already registered');
       err.statusCode = 409;
@@ -19,7 +21,8 @@ class AuthService {
   }
 
   async login(email, password) {
-    const user = await User.findOne({ email: email.toLowerCase(), isActive: true }).select('+password');
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const user = await User.findOne({ email: cleanEmail, isActive: true }).select('+password');
     if (!user) {
       const err = new Error('Invalid credentials');
       err.statusCode = 401;
@@ -91,7 +94,8 @@ class AuthService {
   }
 
   async forgotPassword(email) {
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) return null; // Don't reveal if email exists
 
     const resetToken = crypto.randomBytes(32).toString('hex');

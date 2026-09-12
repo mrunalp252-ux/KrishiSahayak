@@ -122,7 +122,7 @@
 
             try {
                 window.Utils.showToast('Uploading profile picture...', 'info');
-                const res = await window.API.post('/users/profile/avatar', formData, true);
+                const res = await (window.API.upload ? window.API.upload('/users/profile/avatar', formData) : window.API.post('/users/profile/avatar', formData));
                 const imageUrl = res.profileImage || res.imageUrl || (res.data && res.data.profileImage);
 
                 if (imageUrl) {

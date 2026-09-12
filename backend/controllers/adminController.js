@@ -145,3 +145,30 @@ exports.getAuditLogs = async (req, res) => {
     return res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.deleteUser = async (req, res) => {
+  try {
+    if (req.user && req.params.id === req.user._id.toString()) {
+      return res.status(400).json({ success: false, message: 'Administrators cannot delete their own account' });
+    }
+
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    await auditService.log({
+      user: req.user._id,
+      action: 'delete',
+      resource: 'User',
+      resourceId: req.params.id,
+      details: `Admin deleted user: ${user.email} (${user.name})`,
+      ip: req.ip
+    });
+
+    return res.json({ success: true, message: 'User deleted successfully' });
+  } catch (err) {
+    logger.error('Delete user error:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};

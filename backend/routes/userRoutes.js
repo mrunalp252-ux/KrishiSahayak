@@ -20,5 +20,6 @@ router.post('/me/avatar', auth, upload.single('avatar'), controller.uploadProfil
 router.post('/profile/avatar', auth, upload.single('avatar'), controller.uploadProfileImage);
 
 router.put('/:id', auth, authorize('admin'), adminController.updateUser);
+router.delete('/:id', auth, authorize('admin'), adminController.deleteUser);
 
 module.exports = router;

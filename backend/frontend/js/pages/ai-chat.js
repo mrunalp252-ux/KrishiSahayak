@@ -115,7 +115,7 @@
             const loadingBubble = this.appendLoading('Analyzing crop image with vision engine...');
 
             try {
-                const res = await window.API.post('/ai/analyze-crop', formData, true);
+                const res = await (window.API.upload ? window.API.upload('/ai/analyze-crop', formData) : window.API.post('/ai/analyze-crop', formData));
                 if (loadingBubble) loadingBubble.remove();
 
                 const diagnosis = res.diagnosis || res.analysis || (res.data && res.data.diagnosis) || 'Visual analysis complete: Leaf tissue exhibits symptoms indicative of fungal blight. Recommended: Spray Mancozeb 75% WP @ 2g/liter or apply bio-fungicide Trichoderma viride.';

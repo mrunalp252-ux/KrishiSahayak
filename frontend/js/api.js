@@ -19,8 +19,16 @@ window.API = {
         
         options.headers = headers;
         
+        const controller = new AbortController();
+        const timeoutMs = options.timeout || 20000;
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        if (!options.signal) {
+            options.signal = controller.signal;
+        }
+        
         try {
             let response = await fetch(url, options);
+            clearTimeout(timeoutId);
             
             // Handle 401 Unauthorized (token expired)
             if (response.status === 401 && token) {
@@ -63,6 +71,10 @@ window.API = {
             return await response.json();
             
         } catch (error) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                error = new Error('Network request timed out. Please check your connection.');
+            }
             console.error('API Error:', error);
             if (window.Utils && error.message !== 'Session expired') {
                 const clean = window.Utils.cleanErrorMessage ? window.Utils.cleanErrorMessage(error.message) : error.message;
@@ -83,6 +95,12 @@ window.API = {
     },
 
     async post(endpoint, data) {
+        if (data instanceof FormData) {
+            return this.request(endpoint, {
+                method: 'POST',
+                body: data
+            });
+        }
         return this.request(endpoint, {
             method: 'POST',
             body: JSON.stringify(data)
@@ -90,6 +108,12 @@ window.API = {
     },
 
     async put(endpoint, data) {
+        if (data instanceof FormData) {
+            return this.request(endpoint, {
+                method: 'PUT',
+                body: data
+            });
+        }
         return this.request(endpoint, {
             method: 'PUT',
             body: JSON.stringify(data)

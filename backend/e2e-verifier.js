@@ -205,13 +205,13 @@ async function runTests() {
     const advRes = await request('GET', '/api/advisories', null, farmerToken);
     assert(notifRes.status === 200 && advRes.status === 200, '16. Notifications and Region Advisories endpoints (200 OK)');
 
-    // 17. Admin Login
+    // 17. Admin Login (testing whitespace-trimmed email normalization)
     const adminLogin = await request('POST', '/api/auth/login', {
-      email: 'admin@krishisahayak.com',
+      email: '  admin@krishisahayak.com  ',
       password: 'Admin@123456'
     });
     const adminToken = adminLogin.body.token || adminLogin.body.accessToken;
-    assert(adminLogin.status === 200 && adminToken && adminLogin.body.user?.role === 'admin', '17. Admin authentication (admin@krishisahayak.com role=admin 200 OK)');
+    assert(adminLogin.status === 200 && adminToken && adminLogin.body.user?.role === 'admin', '17. Admin authentication & whitespace normalization (admin@krishisahayak.com role=admin 200 OK)');
 
     // 18. Admin Authorization & RBAC
     const adminDash = await request('GET', '/api/admin/dashboard', null, adminToken);
@@ -257,7 +257,16 @@ async function runTests() {
 
     // 21. User / Farmer management (Admin)
     const usersList = await request('GET', '/api/users?role=farmer', null, adminToken);
-    assert(usersList.status === 200 && (usersList.body.users || usersList.body.data), '21. Admin User/Farmer Management (GET /api/users 200)');
+    assert(usersList.status === 200 && (usersList.body.users || usersList.body.data), '21a. Admin User/Farmer Management (GET /api/users 200)');
+
+    // Test admin self-delete protection
+    const adminUserId = adminLogin.body?.user?._id || adminLogin.body?.user?.id;
+    if (adminUserId && adminToken) {
+      const adminSelfDelete = await request('DELETE', `/api/users/${adminUserId}`, null, adminToken);
+      assert(adminSelfDelete.status === 400, '21b. Admin self-delete protection (400 Bad Request)');
+    } else {
+      assert(false, '21b. Admin self-delete protection (requires successful admin authentication)');
+    }
 
     // 22. Logout
     const logoutRes = await request('POST', '/api/auth/logout', null, farmerToken);

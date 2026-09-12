@@ -104,8 +104,10 @@ window.Auth = {
         if (loginForm) {
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
+                const emailInput = document.getElementById('email');
+                const email = emailInput ? emailInput.value.trim() : '';
+                const passwordInput = document.getElementById('password');
+                const password = passwordInput ? passwordInput.value : '';
                 const submitBtn = loginForm.querySelector('button[type="submit"]');
                 try {
                     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Logging in...'; }
@@ -214,7 +216,8 @@ window.Auth = {
         if (forgotForm) {
             forgotForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const email = document.getElementById('email').value;
+                const emailInput = document.getElementById('email');
+                const email = emailInput ? emailInput.value.trim() : '';
                 const submitBtn = forgotForm.querySelector('button[type="submit"]');
                 try {
                     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }

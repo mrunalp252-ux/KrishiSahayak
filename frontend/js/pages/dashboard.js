@@ -34,9 +34,11 @@ window.PageModules.dashboard = {
     },
 
     async loadStats() {
-        let primaryLocation = null;
+        const user = window.Auth ? window.Auth.getUser() : null;
+        let primaryLocation = (user && (user.district || user.state)) ? [user.village, user.district, user.state].filter(Boolean).join(', ') : null;
         let primaryCoords = null;
 
+        // 1. Farms & Active Crops
         try {
             const result = await window.API.get('/farms');
             const farms = result.farms || result.data || [];
@@ -45,28 +47,28 @@ window.PageModules.dashboard = {
             const el = document.getElementById('stat-farms');
             if (el) el.textContent = farmCount;
             
-            // Count active crops
             let activeCrops = 0;
             if (Array.isArray(farms) && farms.length > 0) {
                 activeCrops = farms.filter(f => f.currentCrop).length;
                 const f = farms[0];
                 if (f.location && f.location.lat && f.location.lon) {
                     primaryCoords = { lat: f.location.lat, lon: f.location.lon };
-                } else if (f.district || f.village || f.state) {
+                }
+                if (f.district || f.village || f.state) {
                     primaryLocation = [f.village, f.district, f.state].filter(Boolean).join(', ');
                 }
             }
             const cropEl = document.getElementById('stat-crops');
             if (cropEl) cropEl.textContent = activeCrops;
-        } catch(e) {
-            console.warn('Stats error:', e);
+        } catch (e) {
+            console.warn('Farms stat error:', e);
             const el = document.getElementById('stat-farms');
             if (el) el.textContent = '0';
             const cropEl = document.getElementById('stat-crops');
             if (cropEl) cropEl.textContent = '0';
         }
 
-        // Weather UI updater
+        // 2. Weather UI updater
         const updateWeatherUI = (raw) => {
             const tempEl = document.getElementById('stat-weather');
             const descEl = document.getElementById('stat-weather-desc');
@@ -89,22 +91,23 @@ window.PageModules.dashboard = {
             }
         };
 
-        // If user has a farm with known location, use it immediately
-        if (primaryCoords) {
-            fetchWeather(primaryCoords.lat, primaryCoords.lon, primaryLocation);
-        } else if (primaryLocation) {
-            fetchWeather(18.5204, 73.8567, primaryLocation);
-        } else if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-                () => fetchWeather(18.5204, 73.8567),
-                { timeout: 2500 }
-            );
-        } else {
-            fetchWeather(18.5204, 73.8567);
+        // Dispatch initial weather query immediately without waiting for GPS prompt
+        const initLat = (primaryCoords && primaryCoords.lat) || 18.5204;
+        const initLon = (primaryCoords && primaryCoords.lon) || 73.8567;
+        fetchWeather(initLat, initLon, primaryLocation);
+
+        // Optionally refine with browser geolocation if granted
+        if (navigator.geolocation && !primaryCoords) {
+            try {
+                navigator.geolocation.getCurrentPosition(
+                    pos => fetchWeather(pos.coords.latitude, pos.coords.longitude, primaryLocation),
+                    () => {},
+                    { timeout: 3000, maximumAge: 600000 }
+                );
+            } catch (geoErr) {}
         }
 
-        // Try advisories count
+        // 3. Advisories count
         try {
             const advResult = await window.API.get('/advisories?limit=1');
             const total = (advResult.pagination && advResult.pagination.total != null) 
@@ -112,7 +115,7 @@ window.PageModules.dashboard = {
                 : (Array.isArray(advResult.advisories) ? advResult.advisories.length : (Array.isArray(advResult.data) ? advResult.data.length : 0));
             const el = document.getElementById('stat-advisories');
             if (el) el.textContent = total;
-        } catch(e) {
+        } catch (e) {
             const el = document.getElementById('stat-advisories');
             if (el) el.textContent = '0';
         }
