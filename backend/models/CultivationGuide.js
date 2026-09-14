@@ -43,7 +43,8 @@ const cultivationGuideSchema = new mongoose.Schema(
   }
 );
 
-cultivationGuideSchema.index({ crop: 1, language: 1 }, { unique: true });
+cultivationGuideSchema.index({ cropName: 1, language: 1 }, { unique: true });
+cultivationGuideSchema.index({ crop: 1, language: 1 }, { sparse: true });
 
 const CultivationGuide = mongoose.model('CultivationGuide', cultivationGuideSchema);
 module.exports = CultivationGuide;

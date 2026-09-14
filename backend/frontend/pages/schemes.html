@@ -9,12 +9,15 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">🌱 Krishi Sahayak</div>
-      <nav class="sidebar-nav">
+            <nav class="sidebar-nav">
         <div class="nav-section" data-i18n="nav_main">Main</div>
         <a href="dashboard.html" class="nav-item" data-i18n="nav_dashboard">📊 Dashboard</a>
         <a href="farms.html" class="nav-item" data-i18n="nav_farms">🌾 My Farms</a>
@@ -74,9 +77,9 @@
               Explore Central and State welfare initiatives, direct income transfers (PM-KISAN), crop insurance (PMFBY), subsidized credit (KCC), and irrigation subsidies.
             </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <span class="badge" style="background: rgba(255,255,255,0.2); color: white;">✓ Verified Direct Benefit Transfer</span>
-              <span class="badge" style="background: rgba(255,255,255,0.2); color: white;">✓ Central & State Schemes</span>
-              <span class="badge" style="background: rgba(255,255,255,0.2); color: white;">✓ 100% Free Information</span>
+              <span class="badge" style="background: rgba(255,255,255,0.2); color: white;" data-i18n="badge_dbt">✓ Verified Direct Benefit Transfer</span>
+              <span class="badge" style="background: rgba(255,255,255,0.2); color: white;" data-i18n="badge_central_state">✓ Central & State Schemes</span>
+              <span class="badge" style="background: rgba(255,255,255,0.2); color: white;" data-i18n="badge_free_info">✓ 100% Free Information</span>
             </div>
           </div>
         </div>
@@ -87,30 +90,30 @@
             <div class="form-group">
               <label class="form-label" data-i18n="filter_category">Category</label>
               <select class="form-select" id="scheme-category-filter">
-                <option value="">All Categories</option>
-                <option value="financial_support">Direct Financial Support</option>
-                <option value="crop_insurance">Crop Insurance</option>
-                <option value="credit">Kisan Credit & Loans</option>
-                <option value="irrigation">Irrigation & Drip Subsidies</option>
-                <option value="soil_health">Soil Health</option>
-                <option value="subsidy">Equipment & Farm Subsidies</option>
+                <option value="" data-i18n="filter_cat_all">All Categories</option>
+                <option value="financial_support" data-i18n="cat_financial_support">Direct Financial Support</option>
+                <option value="crop_insurance" data-i18n="cat_crop_insurance">Crop Insurance</option>
+                <option value="credit" data-i18n="cat_credit">Kisan Credit & Loans</option>
+                <option value="irrigation" data-i18n="cat_irrigation">Irrigation & Drip Subsidies</option>
+                <option value="soil_health" data-i18n="cat_soil_health">Soil Health</option>
+                <option value="subsidy" data-i18n="cat_subsidy">Equipment & Farm Subsidies</option>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label" data-i18n="filter_level">Level</label>
               <select class="form-select" id="scheme-level-filter">
-                <option value="">All Levels</option>
-                <option value="central">Central Government</option>
-                <option value="state">State Specific</option>
+                <option value="" data-i18n="filter_level_all">All Levels</option>
+                <option value="central" data-i18n="level_central">Central Government</option>
+                <option value="state" data-i18n="level_state">State Specific</option>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label" data-i18n="search">Search Scheme</label>
-              <input type="text" class="form-control" id="scheme-search-input" placeholder="Search by name, PM-KISAN, subsidy...">
+              <input type="text" class="form-control" id="scheme-search-input" placeholder="Search by name, PM-KISAN, subsidy..." data-i18n-placeholder="search_schemes_placeholder">
             </div>
             <div class="form-group">
               <label class="form-label">&nbsp;</label>
-              <button class="btn btn-primary w-full" id="scheme-filter-btn" data-i18n="search">Search</button>
+              <button class="btn btn-primary w-full" id="scheme-filter-btn" data-i18n="search_btn">Search</button>
             </div>
           </div>
         </div>

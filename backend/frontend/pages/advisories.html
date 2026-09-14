@@ -9,37 +9,40 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="app-layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-logo">🌱 Krishi Sahayak</div>
-      <nav class="sidebar-nav">
-        <div class="nav-section">Main</div>
-        <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
-        <a href="farms.html" class="nav-item">🌾 My Farms</a>
-        <a href="crop-recommendation.html" class="nav-item">🌱 Crop Recommendation</a>
-        <a href="farm-planner.html" class="nav-item">📅 Farm Planner</a>
-        <a href="ai-assistant.html" class="nav-item">🤖 AI Assistant</a>
-        <div class="nav-section">Information</div>
-        <a href="weather.html" class="nav-item">🌤️ Weather</a>
-        <a href="market-prices.html" class="nav-item">📈 Market Prices</a>
-        <a href="pests-diseases.html" class="nav-item">🐛 Pests & Diseases</a>
-        <a href="fertilizer-guide.html" class="nav-item">🧪 Fertilizer Guide</a>
-        <a href="cultivation-guides.html" class="nav-item">📖 Cultivation Guides</a>
-        <a href="advisories.html" class="nav-item">📢 Advisories</a>
-        <a href="schemes.html" class="nav-item">🏛️ Government Schemes</a>
-        <div class="nav-section">Account</div>
-        <a href="notifications.html" class="nav-item">🔔 Notifications</a>
-        <a href="profile.html" class="nav-item">👤 Profile</a>
-        <div class="nav-section expert-only">Expert</div>
-        <a href="expert-dashboard.html" class="nav-item expert-only">🎓 Expert Dashboard</a>
-        <div class="nav-section admin-only">Admin</div>
-        <a href="admin-dashboard.html" class="nav-item admin-only">🛡️ Admin Dashboard</a>
-        <a href="admin-crud.html" class="nav-item admin-only">📋 Manage Data</a>
+            <nav class="sidebar-nav">
+        <div class="nav-section" data-i18n="nav_main">Main</div>
+        <a href="dashboard.html" class="nav-item" data-i18n="nav_dashboard">📊 Dashboard</a>
+        <a href="farms.html" class="nav-item" data-i18n="nav_farms">🌾 My Farms</a>
+        <a href="crop-recommendation.html" class="nav-item" data-i18n="nav_crops">🌱 Crop Recommendation</a>
+        <a href="farm-planner.html" class="nav-item" data-i18n="nav_planner">📅 Farm Planner</a>
+        <a href="ai-assistant.html" class="nav-item" data-i18n="nav_ai">🤖 AI Assistant</a>
+        <div class="nav-section" data-i18n="nav_information">Information</div>
+        <a href="weather.html" class="nav-item" data-i18n="nav_weather">🌤️ Weather</a>
+        <a href="market-prices.html" class="nav-item" data-i18n="nav_market">📈 Market Prices</a>
+        <a href="pests-diseases.html" class="nav-item" data-i18n="nav_pests">🐛 Pests & Diseases</a>
+        <a href="fertilizer-guide.html" class="nav-item" data-i18n="nav_fertilizer">🧪 Fertilizer Guide</a>
+        <a href="cultivation-guides.html" class="nav-item" data-i18n="nav_guides">📖 Cultivation Guides</a>
+        <a href="advisories.html" class="nav-item active" data-i18n="nav_advisories">📢 Advisories</a>
+        <a href="schemes.html" class="nav-item" data-i18n="nav_schemes">🏛️ Government Schemes</a>
+        <div class="nav-section" data-i18n="nav_account">Account</div>
+        <a href="notifications.html" class="nav-item" data-i18n="nav_notifications">🔔 Notifications</a>
+        <a href="profile.html" class="nav-item" data-i18n="nav_profile">👤 Profile</a>
+        <div class="nav-section expert-only" data-i18n="nav_expert">Expert</div>
+        <a href="expert-dashboard.html" class="nav-item expert-only" data-i18n="nav_expert_dashboard">🎓 Expert Dashboard</a>
+        <div class="nav-section admin-only" data-i18n="nav_admin">Admin</div>
+        <a href="admin-dashboard.html" class="nav-item admin-only" data-i18n="nav_admin_dashboard">🛡️ Admin Dashboard</a>
+        <a href="admin-crud.html" class="nav-item admin-only" data-i18n="nav_admin_crud">📋 Manage Data</a>
       </nav>
       <div class="sidebar-footer">
-        <button class="logout-btn" id="logout-btn">🚪 Logout</button>
+        <button class="logout-btn" id="logout-btn" data-i18n="logout">🚪 Logout</button>
       </div>
     </aside>
 
@@ -49,7 +52,7 @@
       <header class="topbar">
         <div class="topbar-left">
           <button class="hamburger" id="hamburger">☰</button>
-          <h2 class="page-title">Agricultural Advisories</h2>
+          <h2 class="page-title" data-i18n="nav_advisories">Agricultural Advisories</h2>
         </div>
         <div class="topbar-right">
           <select class="language-selector" aria-label="Select Language">

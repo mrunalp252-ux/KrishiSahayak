@@ -364,12 +364,17 @@
                 return;
             }
 
+            const lang = (window.I18n && window.I18n.getCurrentLanguage()) || 'en';
+            const pageLabel = lang === 'mr' ? `पृष्ठ ${current} पैकी ${totalPages}` : (lang === 'hi' ? `पृष्ठ ${current} का ${totalPages}` : `Page ${current} of ${totalPages}`);
+            const prevLabel = lang === 'mr' ? '◀ मागील' : (lang === 'hi' ? '◀ पिछला' : '◀ Prev');
+            const nextLabel = lang === 'mr' ? 'पुढील ▶' : (lang === 'hi' ? 'अगला ▶' : 'Next ▶');
+
             container.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 8px; font-size: 0.85rem;">
-                    <div style="color: #6b7280;">Page ${current} of ${totalPages}</div>
+                    <div style="color: #6b7280;">${pageLabel}</div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-sm ${current === 1 ? 'btn-disabled' : 'btn-outline-primary'}" id="pests-prev" ${current === 1 ? 'disabled' : ''}>◀ Prev</button>
-                        <button class="btn btn-sm ${current === totalPages ? 'btn-disabled' : 'btn-outline-primary'}" id="pests-next" ${current === totalPages ? 'disabled' : ''}>Next ▶</button>
+                        <button class="btn btn-sm ${current === 1 ? 'btn-disabled' : 'btn-outline-primary'}" id="pests-prev" ${current === 1 ? 'disabled' : ''}>${prevLabel}</button>
+                        <button class="btn btn-sm ${current === totalPages ? 'btn-disabled' : 'btn-outline-primary'}" id="pests-next" ${current === totalPages ? 'disabled' : ''}>${nextLabel}</button>
                     </div>
                 </div>
             `;
@@ -399,13 +404,20 @@
                 const endpoint = this.activeTab === 'pests' ? '/pests' : '/diseases';
                 const res = await window.API.get(`${endpoint}/${id}`);
                 const item = res.data || res.pest || res.disease || res;
+                const lang = (window.I18n && window.I18n.getCurrentLanguage()) || 'en';
 
                 const name = item.name || item.pestName || item.diseaseName || 'Details';
                 const scientificName = item.scientificName ? `<em>(${item.scientificName})</em>` : '';
-                const symptoms = item.symptoms || 'None recorded.';
-                const organic = item.organicControl || item.prevention || 'Maintain good crop sanitation and crop rotation.';
-                const chemical = item.chemicalControl || item.treatment || 'Consult a certified agronomist for targeted chemical intervention.';
-                const preventive = item.preventiveMeasures || item.prevention || 'Use certified seeds and optimal spacing.';
+                const symptoms = item.symptoms || (lang === 'mr' ? 'नोंद नाही.' : (lang === 'hi' ? 'कोई विवरण नहीं।' : 'None recorded.'));
+                const organic = item.organicControl || item.prevention || (lang === 'mr' ? 'शेताची स्वच्छता राखावी व पीक फेरपालट करावी.' : (lang === 'hi' ? 'खेत में स्वच्छता रखें और फसल चक्र अपनाएं।' : 'Maintain good crop sanitation and crop rotation.'));
+                const chemical = item.chemicalControl || item.treatment || (lang === 'mr' ? 'रासायनिक नियंत्रणासाठी तज्ज्ञांचा किंवा कृषी सेवा केंद्राचा सल्ला घ्या.' : (lang === 'hi' ? 'रासायनिक उपचार के लिए कृषि विशेषज्ञ की सलाह लें।' : 'Consult a certified agronomist for targeted chemical intervention.'));
+                const preventive = item.preventiveMeasures || item.prevention || (lang === 'mr' ? 'प्रमाणित बियाणे वापरा आणि योग्य अंतर ठेवा.' : (lang === 'hi' ? 'प्रमाणित बीजों का उपयोग करें और उचित दूरी रखें।' : 'Use certified seeds and optimal spacing.'));
+
+                const symptomsTitle = lang === 'mr' ? '🚨 लक्षणे व ओळख' : (lang === 'hi' ? '🚨 पहचान एवं लक्षण' : '🚨 Identification & Symptoms');
+                const organicTitle = lang === 'mr' ? '🌿 जैविक व सेंद्रिय नियंत्रण' : (lang === 'hi' ? '🌿 जैविक एवं प्राकृतिक नियंत्रण' : '🌿 Organic & Natural Control');
+                const chemicalTitle = lang === 'mr' ? '🧪 रासायनिक नियंत्रण' : (lang === 'hi' ? '🧪 रासायनिक उपचार' : '🧪 Chemical Treatment');
+                const preventionTitle = lang === 'mr' ? '🛡️ प्रतिबंधात्मक उपाय' : (lang === 'hi' ? '🛡️ रोकथाम एवं सुरक्षा' : '🛡️ Prevention');
+                const closeBtn = lang === 'mr' ? 'मार्गदर्शक बंद करा' : (lang === 'hi' ? 'मार्गदर्शिका बंद करें' : 'Close Guide');
 
                 const html = `
                     <div style="min-width: 320px; max-width: 600px; width: 100%;">
@@ -418,27 +430,27 @@
                         </div>
                         
                         <div style="margin-bottom: 16px;">
-                            <h4 style="margin: 0 0 6px 0; color: #b91c1c; font-size: 0.95rem;">🚨 Identification & Symptoms</h4>
+                            <h4 style="margin: 0 0 6px 0; color: #b91c1c; font-size: 0.95rem;">${symptomsTitle}</h4>
                             <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">${symptoms}</p>
                         </div>
 
                         <div style="margin-bottom: 16px; background: rgba(16, 185, 129, 0.08); padding: 12px; border-radius: 6px; border-left: 3px solid #10b981;">
-                            <h4 style="margin: 0 0 6px 0; color: #065f46; font-size: 0.95rem;">🌿 Organic & Natural Control</h4>
+                            <h4 style="margin: 0 0 6px 0; color: #065f46; font-size: 0.95rem;">${organicTitle}</h4>
                             <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">${organic}</p>
                         </div>
 
                         <div style="margin-bottom: 16px; background: rgba(59, 130, 246, 0.08); padding: 12px; border-radius: 6px; border-left: 3px solid #3b82f6;">
-                            <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 0.95rem;">🧪 Chemical Treatment</h4>
+                            <h4 style="margin: 0 0 6px 0; color: #1e40af; font-size: 0.95rem;">${chemicalTitle}</h4>
                             <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">${chemical}</p>
                         </div>
 
                         <div style="margin-bottom: 20px;">
-                            <h4 style="margin: 0 0 6px 0; color: #4b5563; font-size: 0.95rem;">🛡️ Prevention</h4>
+                            <h4 style="margin: 0 0 6px 0; color: #4b5563; font-size: 0.95rem;">${preventionTitle}</h4>
                             <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">${preventive}</p>
                         </div>
 
                         <div style="text-align: right;">
-                            <button class="btn btn-primary close-modal">Close Guide</button>
+                            <button class="btn btn-primary close-modal">${closeBtn}</button>
                         </div>
                     </div>
                 `;

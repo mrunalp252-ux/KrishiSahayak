@@ -27,6 +27,9 @@ exports.getAll = async (req, res) => {
     const skip = (page - 1) * limit;
     const filter = { isActive: true };
 
+    const lang = req.query.language || req.query.lang || 'en';
+    filter.language = lang;
+
     if (req.query.search) {
       filter.$or = [
         { cropName: new RegExp(req.query.search, 'i') },
@@ -34,12 +37,20 @@ exports.getAll = async (req, res) => {
       ];
     }
     if (req.query.crop) filter.cropName = new RegExp(req.query.crop, 'i');
-    if (req.query.language) filter.language = req.query.language;
 
-    const [data, total] = await Promise.all([
+    let [data, total] = await Promise.all([
       CultivationGuide.find(filter).skip(skip).limit(limit),
       CultivationGuide.countDocuments(filter)
     ]);
+
+    // If no guides found for requested language and language was not 'en', fallback to 'en'
+    if (data.length === 0 && lang !== 'en') {
+      filter.language = 'en';
+      [data, total] = await Promise.all([
+        CultivationGuide.find(filter).skip(skip).limit(limit),
+        CultivationGuide.countDocuments(filter)
+      ]);
+    }
 
     const formattedList = data.map(formatGuideObj);
     const totalPages = Math.ceil(total / limit) || 1;
@@ -67,6 +78,7 @@ exports.getAll = async (req, res) => {
 exports.getByCrop = async (req, res) => {
   try {
     const identifier = req.params.cropId;
+    const requestedLang = req.query.language || req.query.lang || 'en';
     let query = { isActive: true };
 
     if (mongoose.Types.ObjectId.isValid(identifier)) {
@@ -75,7 +87,14 @@ exports.getByCrop = async (req, res) => {
       query.cropName = new RegExp('^' + identifier + '$', 'i');
     }
 
-    const docs = await CultivationGuide.find(query);
+    let docs = await CultivationGuide.find({ ...query, language: requestedLang });
+    if (docs.length === 0 && requestedLang !== 'en') {
+      docs = await CultivationGuide.find({ ...query, language: 'en' });
+    }
+    if (docs.length === 0) {
+      docs = await CultivationGuide.find(query);
+    }
+
     const formatted = docs.map(formatGuideObj);
 
     return res.json({
@@ -95,13 +114,39 @@ exports.getByCrop = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const identifier = req.params.id;
+    const requestedLang = req.query.language || req.query.lang || 'en';
     let doc = null;
 
     if (mongoose.Types.ObjectId.isValid(identifier)) {
       doc = await CultivationGuide.findById(identifier);
+      if (doc && doc.language !== requestedLang) {
+        const localized = await CultivationGuide.findOne({
+          cropName: doc.cropName,
+          language: requestedLang,
+          isActive: true
+        });
+        if (localized) doc = localized;
+      }
     }
     if (!doc) {
-      doc = await CultivationGuide.findOne({ cropName: new RegExp('^' + identifier + '$', 'i') });
+      doc = await CultivationGuide.findOne({
+        cropName: new RegExp('^' + identifier + '$', 'i'),
+        language: requestedLang,
+        isActive: true
+      });
+    }
+    if (!doc && requestedLang !== 'en') {
+      doc = await CultivationGuide.findOne({
+        cropName: new RegExp('^' + identifier + '$', 'i'),
+        language: 'en',
+        isActive: true
+      });
+    }
+    if (!doc) {
+      doc = await CultivationGuide.findOne({
+        cropName: new RegExp('^' + identifier + '$', 'i'),
+        isActive: true
+      });
     }
 
     if (!doc) return res.status(404).json({ success: false, message: 'Cultivation guide not found' });

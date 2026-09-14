@@ -95,7 +95,7 @@ exports.getUsers = async (req, res) => {
 
 exports.getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password -refreshTokens');
+    const user = await User.findById(req.params.id).select('-password -refreshTokens -passwordResetToken -passwordResetExpires');
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
@@ -103,6 +103,15 @@ exports.getUserById = async (req, res) => {
     const farms = await Farm.find({ owner: user._id }).lean();
     const userData = user.toObject();
     userData.farms = farms;
+    userData.crops = Array.from(new Set(farms.map(f => f.currentCrop).filter(Boolean)));
+    userData.registrationDate = user.createdAt;
+    userData.accountStatus = user.isActive ? 'Active' : 'Suspended';
+
+    // Strict sanitization: ensure zero secret or credential leakage
+    delete userData.password;
+    delete userData.passwordResetToken;
+    delete userData.passwordResetExpires;
+    delete userData.refreshTokens;
 
     return res.json({
       success: true,

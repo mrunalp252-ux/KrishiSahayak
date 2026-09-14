@@ -6,6 +6,7 @@ const controller = require('../controllers/adminController');
 
 router.get('/dashboard', auth, authorize('admin'), controller.getDashboard);
 router.get('/users', auth, authorize('admin'), controller.getUsers);
+router.get('/users/:id', auth, authorize('admin'), controller.getUserById);
 router.put('/users/:id', auth, authorize('admin'), controller.updateUser);
 router.get('/audit-logs', auth, authorize('admin'), controller.getAuditLogs);
 

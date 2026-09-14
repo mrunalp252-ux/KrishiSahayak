@@ -158,7 +158,9 @@
                 this.appendMessage('assistant', `⚠️ ${cleanErr}`);
             } finally {
                 this.isProcessing = false;
-                if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send'; }
+                const lang = (window.I18n && window.I18n.getCurrentLanguage()) || 'en';
+                const sendBtnText = lang === 'mr' ? 'पाठवा' : (lang === 'hi' ? 'भेजें' : 'Send');
+                if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = sendBtnText; }
             }
         },
 
@@ -168,7 +170,8 @@
             const userLang = (window.I18n && window.I18n.getCurrentLanguage()) || 'en';
             formData.append('language', userLang);
 
-            this.appendMessage('user', `📷 [Uploaded Image: ${file.name}] Please diagnose this crop disease or pest.`);
+            const userNotice = userLang === 'mr' ? `📷 [अपलोड केलेली प्रतिमा: ${file.name}] कृपया या पिकाच्या रोगाचे किंवा किडीचे निदान करा.` : (userLang === 'hi' ? `📷 [अपलोड की गई छवि: ${file.name}] कृपया इस फसल के रोग या कीट का निदान करें।` : `📷 [Uploaded Image: ${file.name}] Please diagnose this crop disease or pest.`);
+            this.appendMessage('user', userNotice);
             const loadingBubble = this.appendLoading(userLang === 'mr' ? 'कृत्रिम बुद्धिमत्ता (AI) पिकाच्या पानाचे विश्लेषण करत आहे...' : (userLang === 'hi' ? 'कृत्रिम बुद्धिमत्ता (AI) फसल की पत्ती का विश्लेषण कर रही है...' : 'AI Plant Doctor is analyzing crop image...'));
 
             try {

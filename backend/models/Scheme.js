@@ -50,9 +50,24 @@ const schemeSchema = new mongoose.Schema(
     eligibility: [{
       type: String
     }],
+    eligibilityHi: [{
+      type: String
+    }],
+    eligibilityMr: [{
+      type: String
+    }],
     documents: [{
       type: String
     }],
+    documentsHi: [{
+      type: String
+    }],
+    documentsMr: [{
+      type: String
+    }],
+    applicationInstructions: String,
+    applicationInstructionsHi: String,
+    applicationInstructionsMr: String,
     applicationUrl: String,
     helpline: String,
     isActive: {

@@ -149,6 +149,7 @@ window.I18n = {
         
         this.currentLang = lang;
         localStorage.setItem('language', lang);
+        localStorage.setItem('krishi_language', lang);
         
         await this.loadTranslations(lang);
         this.translatePage();
@@ -228,3 +229,5 @@ window.I18n = {
         });
     }
 };
+
+window.i18n = window.I18n;

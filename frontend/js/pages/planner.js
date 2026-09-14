@@ -145,9 +145,14 @@
                 const farmName = (act.farm && act.farm.farmName) || (this.farms.find(f => f._id === act.farm)?.farmName) || 'Farm Task';
                 const description = act.description || act.notes || '';
 
+                const tCompleted = (window.I18n && window.I18n.t('completed')) || 'Completed';
+                const tInProgress = (window.I18n && window.I18n.t('in_progress')) || 'In Progress';
+                const tPending = (window.I18n && window.I18n.t('pending')) || 'Pending';
+                const tDone = (window.I18n && window.I18n.t('complete')) || 'Done';
+
                 const statusBadge = status === 'completed' 
-                    ? '<span class="badge badge-success">Completed</span>'
-                    : (status === 'in_progress' ? '<span class="badge badge-warning">In Progress</span>' : '<span class="badge badge-info">Pending</span>');
+                    ? `<span class="badge badge-success">${tCompleted}</span>`
+                    : (status === 'in_progress' ? `<span class="badge badge-warning">${tInProgress}</span>` : `<span class="badge badge-info">${tPending}</span>`);
 
                 const expTotal = (act.expenses && act.expenses.totalCost) ? act.expenses.totalCost : 0;
                 const expBadge = expTotal > 0 ? `<span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; font-size:0.75rem; font-weight:600;">💰 ₹${expTotal.toLocaleString('en-IN')}</span>` : '';
@@ -174,8 +179,8 @@
                         <div style="display:flex; justify-content:space-between; align-items:center; pt-2; border-top:1px solid #f3f4f6;">
                             <div>
                                 ${status !== 'completed' ? `
-                                    <button class="btn btn-sm btn-outline-success" onclick="window.PageModules.planner.markComplete('${act._id}')">✓ Done</button>
-                                ` : '<span style="color:#10b981; font-size:0.85rem;">✓ Completed</span>'}
+                                    <button class="btn btn-sm btn-outline-success" onclick="window.PageModules.planner.markComplete('${act._id}')">✓ ${tDone}</button>
+                                ` : `<span style="color:#10b981; font-size:0.85rem;">✓ ${tCompleted}</span>`}
                             </div>
                             <div style="display:flex; gap:6px;">
                                 <button class="btn btn-sm btn-outline-danger" onclick="window.PageModules.planner.deleteActivity('${act._id}')">🗑️</button>
