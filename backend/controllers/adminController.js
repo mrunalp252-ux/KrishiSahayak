@@ -93,6 +93,29 @@ exports.getUsers = async (req, res) => {
   }
 };
 
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password -refreshTokens');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const farms = await Farm.find({ owner: user._id }).lean();
+    const userData = user.toObject();
+    userData.farms = farms;
+
+    return res.json({
+      success: true,
+      message: 'User retrieved',
+      data: userData,
+      user: userData
+    });
+  } catch (err) {
+    logger.error('Get user by id error:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 exports.updateUser = async (req, res) => {
   try {
     // Admin can only update role and isActive status

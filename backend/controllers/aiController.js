@@ -102,11 +102,28 @@ exports.analyzeImage = async (req, res) => {
     if (!aiService.isConfigured()) {
       return res.status(503).json(error('AI service is not configured for image analysis. Please set AI_API_KEY in environment variables.'));
     }
-    const analysis = await imageAnalysisService.analyze(req.file.path, req.file.mimetype);
+
+    const options = {
+      crop: req.body.crop || req.body.cropName,
+      symptoms: req.body.symptoms,
+      language: req.body.language || req.user?.preferredLanguage || req.user?.language || 'en'
+    };
+
+    const analysis = await imageAnalysisService.analyze(req.file.path, req.file.mimetype, options);
     return res.json(success('Analysis completed', { 
       data: analysis,
       analysis,
-      diagnosis: analysis.possibleIssue || 'Visual analysis completed'
+      diagnosis: analysis.possibleProblem || analysis.possibleIssue || 'Visual analysis completed',
+      isUnclear: Boolean(analysis.isUnclear),
+      confidence: analysis.confidence || 'moderate',
+      confidenceScore: analysis.confidenceScore,
+      severity: analysis.severity || 'moderate',
+      immediateActions: analysis.immediateActions || [],
+      treatmentGuidance: analysis.treatmentGuidance || '',
+      plantCare: analysis.plantCare || '',
+      irrigationGuidance: analysis.irrigationGuidance || '',
+      nutrientGuidance: analysis.nutrientGuidance || '',
+      prevention: analysis.prevention || []
     }));
   } catch (err) {
     logger.error('AI image analysis controller error:', err.message);

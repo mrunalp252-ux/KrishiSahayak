@@ -79,9 +79,66 @@
 
             if (sourceEl) {
                 if (data.isLive) {
-                    sourceEl.innerHTML = `🟢 Live Open-Meteo Agro-Meteorological Satellite Data`;
+                    sourceEl.innerHTML = `🟢 Live Agro-Meteorological Weather Data`;
                 } else {
                     sourceEl.innerHTML = `📡 Krishi Sahayak Agromet Forecasting Engine`;
+                }
+            }
+
+            this.renderAlertsAndAdvice(data);
+        },
+
+        renderAlertsAndAdvice(data) {
+            const alertsContainer = document.getElementById('weather-alerts-container');
+            const adviceCard = document.getElementById('weather-advice-card');
+            const adviceList = document.getElementById('weather-advice-list');
+            const lang = (window.I18n && window.I18n.getCurrentLanguage()) || 'en';
+
+            // 1. Weather Alerts
+            if (alertsContainer) {
+                const alerts = Array.isArray(data.alerts) ? data.alerts : [];
+                if (alerts.length > 0) {
+                    alertsContainer.innerHTML = alerts.map(a => {
+                        const title = lang === 'mr' ? (a.title_mr || a.title) : (lang === 'hi' ? (a.title_hi || a.title) : a.title);
+                        const msg = lang === 'mr' ? (a.message_mr || a.message) : (lang === 'hi' ? (a.message_hi || a.message) : a.message);
+                        const isCrit = a.severity === 'critical' || a.type === 'heavy_rain';
+                        const bg = isCrit ? '#fef2f2' : '#fffbeb';
+                        const border = isCrit ? '#f87171' : '#fcd34d';
+                        const textCol = isCrit ? '#991b1b' : '#92400e';
+                        const icon = isCrit ? '⛈️' : '⚠️';
+
+                        return `
+                            <div class="weather-alert-box" style="background:${bg}; border:1px solid ${border}; border-radius:8px; padding:12px 16px; margin-bottom:10px; display:flex; align-items:flex-start; gap:12px;">
+                                <div style="font-size:1.6rem; line-height:1;">${icon}</div>
+                                <div style="flex:1;">
+                                    <h4 style="margin:0 0 4px 0; color:${textCol}; font-size:1rem;">${title}</h4>
+                                    <p style="margin:0; font-size:0.9rem; color:${textCol}; line-height:1.5;">${msg}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    alertsContainer.style.display = 'block';
+                } else {
+                    alertsContainer.style.display = 'none';
+                }
+            }
+
+            // 2. Farming Advice
+            if (adviceCard && adviceList) {
+                const adviceItems = Array.isArray(data.farmingAdvice) ? data.farmingAdvice : [];
+                if (adviceItems.length > 0) {
+                    adviceList.innerHTML = adviceItems.map((adv, idx) => {
+                        const txt = lang === 'mr' ? (adv.text_mr || adv.text) : (lang === 'hi' ? (adv.text_hi || adv.text) : adv.text);
+                        return `
+                            <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:8px;">
+                                <span style="color:var(--primary); font-weight:bold; font-size:1.1rem;">•</span>
+                                <div>${txt}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    adviceCard.style.display = 'block';
+                } else {
+                    adviceCard.style.display = 'none';
                 }
             }
         },

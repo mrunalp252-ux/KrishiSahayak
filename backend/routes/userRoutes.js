@@ -19,6 +19,7 @@ router.put('/profile/password', auth, ...changePasswordValidation, validate, con
 router.post('/me/avatar', auth, upload.single('avatar'), controller.uploadProfileImage);
 router.post('/profile/avatar', auth, upload.single('avatar'), controller.uploadProfileImage);
 
+router.get('/:id', auth, authorize('admin', 'expert'), adminController.getUserById);
 router.put('/:id', auth, authorize('admin'), adminController.updateUser);
 router.delete('/:id', auth, authorize('admin'), adminController.deleteUser);
 

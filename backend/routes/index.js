@@ -20,6 +20,8 @@ router.use('/planner', require('./activityRoutes'));
 router.use('/ai', require('./aiRoutes'));
 router.use('/expert', require('./expertRoutes'));
 router.use('/admin', require('./adminRoutes'));
+router.use('/schemes', require('./schemeRoutes'));
+router.use('/government-schemes', require('./schemeRoutes'));
 router.use('/health', require('./healthRoutes'));
 router.use('/upload', require('./uploadRoutes'));
 module.exports = router;

@@ -184,41 +184,111 @@
             try {
                 const res = await window.API.get(`/guides/${idOrCrop}`);
                 const guide = res.guide || res.data || res;
+                const lang = (window.I18n && window.I18n.getCurrentLanguage()) || 'en';
 
                 const cropName = guide.cropName || (guide.crop && guide.crop.cropName) || guide.crop || 'Cultivation';
 
-                const sections = [
-                    { title: '1. Climate & Weather Requirements', content: guide.climateRequirements || guide.climate },
-                    { title: '2. Soil Preparation & Requirements', content: guide.soilRequirements || guide.soil || guide.landPreparation },
-                    { title: '3. Seed Selection & Treatment', content: guide.seedSelection || guide.seedTreatment },
-                    { title: '4. Sowing / Planting Technique', content: guide.sowing || guide.plantingMethod },
-                    { title: '5. Irrigation & Water Management', content: guide.waterManagement || guide.irrigation },
-                    { title: '6. Nutrient & Fertilizer Management', content: guide.nutrientManagement || guide.fertilizers },
-                    { title: '7. Pest & Weed Management', content: guide.pestManagement || guide.weedControl },
-                    { title: '8. Harvesting & Post-Harvest Storage', content: guide.harvesting || guide.postHarvest }
-                ].filter(s => !!s.content);
+                const sectionTitleTranslations = {
+                    'Land Preparation': { mr: 'जमिनीची तयारी', hi: 'खेत / भूमि की तैयारी' },
+                    'Seed Selection': { mr: 'बियाणे निवड आणि बीजप्रक्रिया', hi: 'बीज चयन और उपचार' },
+                    'Seed Selection & Treatment': { mr: 'बियाणे निवड आणि प्रक्रिया', hi: 'बीज चयन एवं उपचार' },
+                    'Sowing': { mr: 'पेरणीची पद्धत', hi: 'बुआई की विधि' },
+                    'Sowing / Planting Technique': { mr: 'पेरणी व लागवड तंत्रज्ञान', hi: 'बुआई एवं रोपाई तकनीक' },
+                    'Irrigation': { mr: 'पाणी व्यवस्थापन (सिंचन)', hi: 'सिंचाई एवं जल प्रबंधन' },
+                    'Irrigation & Water Management': { mr: 'पाणी व सिंचन व्यवस्थापन', hi: 'सिंचाई और जल प्रबंधन' },
+                    'Nutrient Management': { mr: 'खत व पोषण व्यवस्थापन', hi: 'पोषक तत्व व उर्वरक प्रबंधन' },
+                    'Nutrient & Fertilizer Management': { mr: 'खत आणि पोषण व्यवस्थापन', hi: 'उर्वरक एवं पोषण प्रबंधन' },
+                    'Pest Management': { mr: 'कीड नियंत्रण व व्यवस्थापन', hi: 'कीट नियंत्रण एवं प्रबंधन' },
+                    'Pest & Weed Management': { mr: 'कीड व तण व्यवस्थापन', hi: 'कीट एवं खरपतवार प्रबंधन' },
+                    'Disease Management': { mr: 'रोग नियंत्रण व व्यवस्थापन', hi: 'रोग नियंत्रण एवं प्रबंधन' },
+                    'Harvesting': { mr: 'कापणी व काढणी तंत्र', hi: 'कटाई एवं मड़ाई' },
+                    'Harvesting & Post-Harvest Storage': { mr: 'कापणी व साठवणूक', hi: 'कटाई एवं सुरक्षित भंडारण' },
+                    'Post-Harvest': { mr: 'काढणीपश्चात व्यवस्थापन व साठवणूक', hi: 'कटाई उपरांत प्रबंधन एवं भंडारण' },
+                    'Climate & Weather Requirements': { mr: 'हवामान व अनुकूल परिस्थिती', hi: 'जलवायु एवं मौसम की आवश्यकताएं' },
+                    'Soil Preparation & Requirements': { mr: 'जमीन व मशागत आवश्यकता', hi: 'मृदा आवश्यकता एवं खेत की तैयारी' }
+                };
+
+                const getStepPrefix = (stepNum, l) => {
+                    if (l === 'mr') {
+                        const digits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+                        const numStr = String(stepNum).split('').map(d => digits[parseInt(d, 10)] || d).join('');
+                        return `पायरी ${numStr}`;
+                    }
+                    if (l === 'hi') {
+                        const digits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+                        const numStr = String(stepNum).split('').map(d => digits[parseInt(d, 10)] || d).join('');
+                        return `चरण ${numStr}`;
+                    }
+                    return `Step ${stepNum}`;
+                };
+
+                // Assemble sections ensuring Step 1 starts at index 0
+                let normalizedSections = [];
+                if (Array.isArray(guide.sections) && guide.sections.length > 0) {
+                    const sorted = [...guide.sections].sort((a, b) => (a.order || 0) - (b.order || 0));
+                    normalizedSections = sorted
+                        .filter(s => s && s.content && String(s.content).trim())
+                        .map(s => ({
+                            title: String(s.title || '').replace(/^\d+[\.\s\-:]+/, '').trim(),
+                            content: String(s.content).trim()
+                        }));
+                }
+
+                if (normalizedSections.length === 0) {
+                    const fallbackCandidates = [
+                        { rawTitle: 'Climate & Weather Requirements', content: guide.climateRequirements || guide.climate },
+                        { rawTitle: 'Land Preparation', content: guide.soilRequirements || guide.soil || guide.landPreparation },
+                        { rawTitle: 'Seed Selection & Treatment', content: guide.seedSelection || guide.seedTreatment },
+                        { rawTitle: 'Sowing / Planting Technique', content: guide.sowing || guide.plantingMethod },
+                        { rawTitle: 'Irrigation & Water Management', content: guide.waterManagement || guide.irrigation },
+                        { rawTitle: 'Nutrient & Fertilizer Management', content: guide.nutrientManagement || guide.fertilizers },
+                        { rawTitle: 'Pest & Weed Management', content: guide.pestManagement || guide.weedControl },
+                        { rawTitle: 'Disease Management', content: guide.diseaseManagement },
+                        { rawTitle: 'Harvesting & Post-Harvest Storage', content: guide.harvesting || guide.postHarvest }
+                    ];
+
+                    normalizedSections = fallbackCandidates
+                        .filter(c => c.content && String(c.content).trim())
+                        .map(c => ({
+                            title: c.rawTitle,
+                            content: String(c.content).trim()
+                        }));
+                }
 
                 let sectionsHtml = '';
-                sections.forEach((sec, idx) => {
+                normalizedSections.forEach((sec, idx) => {
+                    const stepNumber = idx + 1;
+                    const stepPrefix = getStepPrefix(stepNumber, lang);
+                    const cleanTitle = sec.title || `Stage ${stepNumber}`;
+                    const localizedTitle = (sectionTitleTranslations[cleanTitle] && sectionTitleTranslations[cleanTitle][lang]) || cleanTitle;
+                    const displayHeading = `${stepPrefix}: ${localizedTitle}`;
+
                     sectionsHtml += `
-                        <div style="margin-bottom:14px; background:var(--bg-secondary, #f9fafb); border-radius:8px; border:1px solid rgba(0,0,0,0.06); padding:14px;">
-                            <h4 style="margin:0 0 6px 0; color:var(--primary-color, #059669); font-size:0.95rem;">${sec.title}</h4>
-                            <p style="margin:0; font-size:0.9rem; line-height:1.5; color:var(--text-color, #374151);">${sec.content}</p>
+                        <div class="guide-step-card" style="margin-bottom:14px; background:var(--bg-secondary, #f9fafb); border-radius:8px; border:1px solid rgba(0,0,0,0.06); padding:14px;">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                <span class="badge badge-success" style="font-weight:600; font-size:0.8rem; padding:3px 8px;">${stepPrefix}</span>
+                                <h4 style="margin:0; color:var(--primary-color, #059669); font-size:0.98rem;">${localizedTitle}</h4>
+                            </div>
+                            <p style="margin:0; font-size:0.92rem; line-height:1.6; color:var(--text-color, #374151);">${sec.content}</p>
                         </div>
                     `;
                 });
 
+                const guideTitleLabel = lang === 'mr' ? 'पीक लागवड मार्गदर्शक' : (lang === 'hi' ? 'फसल खेती मार्गदर्शिका' : 'Cultivation Guide');
+                const closeBtnLabel = lang === 'mr' ? 'बंद करा' : (lang === 'hi' ? 'बंद करें' : 'Close');
+                const emptyNotice = lang === 'mr' ? 'या पिकासाठी सविस्तर पायऱ्या तयार केल्या जात आहेत.' : (lang === 'hi' ? 'इस फसल के लिए विस्तृत चरण तैयार किए जा रहे हैं।' : 'Detailed steps are being compiled for this crop.');
+
                 const modalHtml = `
-                    <div style="min-width:320px; max-width:650px; width:100%; max-height:80vh; overflow-y:auto;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; position:sticky; top:0; background:var(--bg-color, white); padding-bottom:8px; border-bottom:1px solid #e5e7eb;">
-                            <h3 style="margin:0; font-size:1.3rem;">📖 ${cropName} Cultivation Guide</h3>
-                            <button class="close-modal" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                    <div style="min-width:320px; max-width:680px; width:100%; max-height:85vh; overflow-y:auto; padding:4px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; position:sticky; top:0; background:var(--bg-color, white); padding:10px 0; border-bottom:1px solid #e5e7eb; z-index:2;">
+                            <h3 style="margin:0; font-size:1.3rem; color:var(--primary-dark, #065f46);">🌾 ${cropName} — ${guideTitleLabel}</h3>
+                            <button class="close-modal" aria-label="Close" style="background:none; border:none; font-size:1.6rem; cursor:pointer; color:#6b7280;">&times;</button>
                         </div>
                         <div>
-                            ${sectionsHtml || '<p>Detailed steps are being compiled for this crop.</p>'}
+                            ${sectionsHtml || `<p style="text-align:center; padding:20px; color:#6b7280;">${emptyNotice}</p>`}
                         </div>
-                        <div style="text-align:right; margin-top:16px;">
-                            <button class="btn btn-primary close-modal">Close</button>
+                        <div style="text-align:right; margin-top:16px; position:sticky; bottom:0; background:var(--bg-color, white); padding:10px 0; border-top:1px solid #e5e7eb;">
+                            <button class="btn btn-primary close-modal">${closeBtnLabel}</button>
                         </div>
                     </div>
                 `;

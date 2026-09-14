@@ -56,6 +56,25 @@ const farmActivitySchema = new mongoose.Schema(
       default: 'medium',
     },
     notes: String,
+    // Farm Diary fields
+    fertilizerUsed: mongoose.Schema.Types.Mixed,
+    sprayTreatment: mongoose.Schema.Types.Mixed,
+    irrigationDetails: mongoose.Schema.Types.Mixed,
+    // Expense tracking
+    expenses: {
+      seedCost: { type: Number, default: 0 },
+      fertilizerCost: { type: Number, default: 0 },
+      sprayCost: { type: Number, default: 0 },
+      labourCost: { type: Number, default: 0 },
+      otherCost: { type: Number, default: 0 },
+      totalCost: { type: Number, default: 0 }
+    },
+    // Simple profit estimation
+    income: {
+      estimatedIncome: { type: Number, default: 0 },
+      actualIncome: { type: Number, default: 0 }
+    },
+    reminderDate: Date
   },
   {
     timestamps: true,

@@ -28,6 +28,7 @@
         <a href="fertilizer-guide.html" class="nav-item">🧪 Fertilizer Guide</a>
         <a href="cultivation-guides.html" class="nav-item">📖 Cultivation Guides</a>
         <a href="advisories.html" class="nav-item">📢 Advisories</a>
+        <a href="schemes.html" class="nav-item">🏛️ Government Schemes</a>
         <div class="nav-section">Account</div>
         <a href="notifications.html" class="nav-item">🔔 Notifications</a>
         <a href="profile.html" class="nav-item">👤 Profile</a>
@@ -68,9 +69,67 @@
         <div class="tabs mb-4" id="pest-tabs">
           <div class="tab-item active" data-tab="pests" data-i18n="pests">Pests</div>
           <div class="tab-item" data-tab="diseases" data-i18n="diseases">Diseases</div>
+          <div class="tab-item" data-tab="plant-doctor" data-i18n="ai_plant_doctor">🩺 AI Plant Doctor</div>
         </div>
 
-        <div class="grid-2 mb-4">
+        <!-- Dedicated AI Plant Doctor View -->
+        <div id="plant-doctor-container" style="display:none;" class="mb-4">
+          <div class="card" style="border:1px solid #10b981; background:linear-gradient(135deg, rgba(16,185,129,0.03) 0%, rgba(5,150,105,0.06) 100%);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+              <div>
+                <h3 style="margin:0; color:var(--primary-dark, #065f46); font-size:1.3rem;">🩺 AI Plant Doctor (रोग व कीड निदान)</h3>
+                <p style="margin:4px 0 0 0; font-size:0.9rem; color:#4b5563;">Upload or take a photo of affected crop leaves for instant AI diagnosis, IPM plant-care, and treatment guidance.</p>
+              </div>
+              <a href="expert-dashboard.html" class="btn btn-sm btn-outline-primary" style="text-decoration:none;">Ask Expert 🎓</a>
+            </div>
+
+            <div class="grid-2 mb-3">
+              <div class="form-group">
+                <label class="form-label" style="font-weight:600;">1. Select Crop (Optional):</label>
+                <select class="form-select" id="doctor-crop-select">
+                  <option value="">Auto-Detect / Any Crop</option>
+                  <option value="Cotton">Cotton (कापूस / कपास)</option>
+                  <option value="Soybean">Soybean (सोयाबीन)</option>
+                  <option value="Rice">Rice / Paddy (भात / धान)</option>
+                  <option value="Wheat">Wheat (गहू / गेहूं)</option>
+                  <option value="Tomato">Tomato (टोमॅटो / टमाटर)</option>
+                  <option value="Onion">Onion (कांदा / प्याज)</option>
+                  <option value="Sugarcane">Sugarcane (ऊस / गन्ना)</option>
+                  <option value="Maize">Maize (मका / मक्का)</option>
+                  <option value="Gram">Chana / Chickpea (हरभरा / चना)</option>
+                  <option value="Pigeon Pea">Tur / Arhar (तूर / अरहर)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-weight:600;">2. Observed Symptoms (Optional):</label>
+                <input type="text" class="form-control" id="doctor-symptoms-input" placeholder="e.g. Yellowing leaves, holes, black spots, wilting">
+              </div>
+            </div>
+
+            <div class="image-upload-zone" id="doctor-upload-zone" style="border:2px dashed var(--primary); border-radius:10px; padding:24px; text-align:center; background:var(--surface); cursor:pointer; margin-bottom:16px;">
+              <input type="file" id="doctor-file-input" accept="image/*" capture="environment" style="display:none;">
+              <div style="font-size:2.5rem; margin-bottom:8px;">📷 🌾</div>
+              <div style="font-weight:600; font-size:1.05rem; margin-bottom:4px;" id="doctor-file-label">Take a Photo or Choose File</div>
+              <div style="font-size:0.85rem; color:#6b7280;">Supports Camera capture on mobile or JPG, PNG, WEBP files up to 5MB</div>
+              <div id="doctor-preview-container" style="margin-top:12px; display:none;">
+                <img id="doctor-image-preview" src="" alt="Crop Preview" style="max-height:180px; max-width:100%; border-radius:6px; object-fit:contain; border:1px solid #d1d5db;">
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+              <button class="btn btn-primary" id="doctor-submit-btn" style="padding:0.75rem 1.5rem; font-size:1rem;">
+                <span>Diagnose Plant Issue 🔍</span>
+              </button>
+              <div style="font-size:0.8rem; color:#6b7280;">
+                ℹ️ Results provide probabilistic guidance. Always review product labels and PPE before spraying.
+              </div>
+            </div>
+
+            <div id="doctor-result-card" style="margin-top:20px; display:none;"></div>
+          </div>
+        </div>
+
+        <div id="pests-filters-section" class="grid-2 mb-4">
           <div class="form-group">
             <input type="text" class="form-control" id="pest-search" placeholder="Search pests or diseases...">
           </div>

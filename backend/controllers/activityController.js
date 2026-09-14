@@ -50,6 +50,12 @@ exports.create = async (req, res) => {
   try {
     const activityData = { ...req.body, user: req.user._id };
     if (activityData.farmId && !activityData.farm) activityData.farm = activityData.farmId;
+    if (activityData.expenses) {
+      const e = activityData.expenses;
+      if (!e.totalCost) {
+        e.totalCost = (Number(e.seedCost) || 0) + (Number(e.fertilizerCost) || 0) + (Number(e.sprayCost) || 0) + (Number(e.labourCost) || 0) + (Number(e.otherCost) || 0);
+      }
+    }
     const doc = await FarmActivity.create(activityData);
     return res.status(201).json({ success: true, message: 'Activity created', data: doc, activity: doc });
   } catch (err) {
@@ -60,6 +66,12 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     delete req.body.user;
+    if (req.body.expenses) {
+      const e = req.body.expenses;
+      if (!e.totalCost) {
+        e.totalCost = (Number(e.seedCost) || 0) + (Number(e.fertilizerCost) || 0) + (Number(e.sprayCost) || 0) + (Number(e.labourCost) || 0) + (Number(e.otherCost) || 0);
+      }
+    }
     const doc = await FarmActivity.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
       req.body,
@@ -69,6 +81,148 @@ exports.update = async (req, res) => {
     return res.json({ success: true, message: 'Activity updated', data: doc });
   } catch (err) {
     return res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+exports.getUpcomingReminders = async (req, res) => {
+  try {
+    const daysAhead = parseInt(req.query.days) || 14;
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
+
+    const filter = {
+      user: req.user._id,
+      status: { $in: ['pending', 'in_progress', 'scheduled'] },
+      scheduledDate: {
+        $gte: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+        $lte: futureDate
+      }
+    };
+
+    const activities = await FarmActivity.find(filter)
+      .populate('farm', 'farmName location currentCrop')
+      .sort({ scheduledDate: 1 })
+      .limit(10);
+
+    const reminders = activities.map(act => {
+      const scheduled = new Date(act.scheduledDate);
+      const diffDays = Math.ceil((scheduled.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      let urgency = 'normal';
+      if (diffDays <= 0) urgency = 'overdue';
+      else if (diffDays <= 2) urgency = 'urgent';
+      else if (diffDays <= 5) urgency = 'upcoming';
+
+      return {
+        _id: act._id,
+        title: act.title,
+        type: act.type,
+        crop: act.crop || (act.farm && act.farm.currentCrop) || '',
+        farmName: act.farm ? act.farm.farmName : 'Farm',
+        scheduledDate: act.scheduledDate,
+        diffDays,
+        urgency,
+        priority: act.priority || 'medium',
+        description: act.description
+      };
+    });
+
+    return res.json({
+      success: true,
+      message: 'Upcoming reminders retrieved',
+      count: reminders.length,
+      data: reminders,
+      reminders
+    });
+  } catch (err) {
+    logger.error('Get upcoming reminders error:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getExpenseSummary = async (req, res) => {
+  try {
+    const filter = { user: req.user._id };
+    if (req.query.farm) filter.farm = req.query.farm;
+    if (req.query.crop) filter.crop = req.query.crop;
+
+    const activities = await FarmActivity.find(filter).lean();
+
+    let totalSeedCost = 0;
+    let totalFertilizerCost = 0;
+    let totalSprayCost = 0;
+    let totalLabourCost = 0;
+    let totalOtherCost = 0;
+    let grandTotalCost = 0;
+    let totalEstimatedIncome = 0;
+    let totalActualIncome = 0;
+
+    const byCrop = {};
+    const byCategory = {
+      seed: 0,
+      fertilizer: 0,
+      spray: 0,
+      labour: 0,
+      other: 0
+    };
+
+    activities.forEach(act => {
+      const exp = act.expenses || {};
+      const seed = Number(exp.seedCost || 0);
+      const fert = Number(exp.fertilizerCost || 0);
+      const spray = Number(exp.sprayCost || 0);
+      const labour = Number(exp.labourCost || 0);
+      const other = Number(exp.otherCost || 0);
+      const total = Number(exp.totalCost || (seed + fert + spray + labour + other));
+
+      totalSeedCost += seed;
+      totalFertilizerCost += fert;
+      totalSprayCost += spray;
+      totalLabourCost += labour;
+      totalOtherCost += other;
+      grandTotalCost += total;
+
+      byCategory.seed += seed;
+      byCategory.fertilizer += fert;
+      byCategory.spray += spray;
+      byCategory.labour += labour;
+      byCategory.other += other;
+
+      const crop = act.crop || 'General';
+      if (!byCrop[crop]) {
+        byCrop[crop] = { totalCost: 0, count: 0 };
+      }
+      byCrop[crop].totalCost += total;
+      byCrop[crop].count += 1;
+
+      if (act.income) {
+        totalEstimatedIncome += Number(act.income.estimatedIncome || 0);
+        totalActualIncome += Number(act.income.actualIncome || 0);
+      }
+    });
+
+    const netProfit = totalActualIncome - grandTotalCost;
+
+    return res.json({
+      success: true,
+      message: 'Expense summary retrieved',
+      data: {
+        totalSeedCost,
+        totalFertilizerCost,
+        totalSprayCost,
+        totalLabourCost,
+        totalOtherCost,
+        grandTotalCost,
+        totalEstimatedIncome,
+        totalActualIncome,
+        netProfit,
+        byCategory,
+        byCrop,
+        activityCount: activities.length
+      }
+    });
+  } catch (err) {
+    logger.error('Get expense summary error:', err);
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 

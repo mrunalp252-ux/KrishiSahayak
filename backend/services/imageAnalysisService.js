@@ -2,14 +2,18 @@ const aiService = require('./aiService');
 const logger = require('../utils/logger');
 
 class ImageAnalysisService {
-  async analyze(filePath, mimeType) {
+  async analyze(filePath, mimeType, options = {}) {
     try {
       this.validateImageType(mimeType);
-      return await aiService.analyzeImage(filePath, mimeType);
+      return await aiService.analyzeImage(filePath, mimeType, options);
     } catch (err) {
       logger.error('Image analysis error:', err.message);
       throw err;
     }
+  }
+
+  async analyzePlantHealth(filePathOrBuffer, mimeType, options = {}) {
+    return this.analyze(filePathOrBuffer, mimeType, options);
   }
 
   validateImageType(mimeType) {

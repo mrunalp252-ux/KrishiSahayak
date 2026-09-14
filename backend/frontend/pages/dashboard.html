@@ -28,6 +28,7 @@
         <a href="fertilizer-guide.html" class="nav-item">🧪 Fertilizer Guide</a>
         <a href="cultivation-guides.html" class="nav-item">📖 Cultivation Guides</a>
         <a href="advisories.html" class="nav-item">📢 Advisories</a>
+        <a href="schemes.html" class="nav-item">🏛️ Government Schemes</a>
         <div class="nav-section">Account</div>
         <a href="notifications.html" class="nav-item">🔔 Notifications</a>
         <a href="profile.html" class="nav-item">👤 Profile</a>
@@ -70,6 +71,9 @@
           <div class="date text-secondary" id="dashboard-date"></div>
         </div>
 
+        <!-- Weather Alert Banner (Dynamic) -->
+        <div id="dashboard-weather-alert" style="display:none; margin-bottom: 1.5rem;"></div>
+
         <div class="grid-4 mb-4" id="dashboard-stats">
           <div class="card stat-card">
             <div class="stat-icon">🌾</div>
@@ -104,13 +108,31 @@
         <div class="grid-2 mb-4">
           <div class="card">
             <h3 class="mb-3" data-i18n="quick_actions">Quick Actions</h3>
-            <div class="grid-2">
+            <div class="grid-2" style="gap: 10px;">
+              <a href="pests-diseases.html#plant-doctor" class="btn btn-primary w-full" style="background: linear-gradient(135deg, #10b981, #059669); border:none; text-align:center;">
+                🩺 AI Plant Doctor
+              </a>
+              <a href="schemes.html" class="btn btn-secondary w-full" style="text-align:center;">
+                🏛️ Govt Schemes
+              </a>
               <a href="farms.html" class="btn btn-secondary w-full" data-i18n="add_farm">Add Farm</a>
-              <a href="crop-recommendation.html" class="btn btn-secondary w-full" data-i18n="get_recommendation">Get Recommendation</a>
-              <a href="weather.html" class="btn btn-secondary w-full" data-i18n="check_weather">Check Weather</a>
-              <a href="ai-assistant.html" class="btn btn-primary w-full" data-i18n="ask_ai">Ask AI Assistant</a>
+              <a href="crop-recommendation.html" class="btn btn-secondary w-full" data-i18n="get_recommendation">Recommendation</a>
+              <a href="farm-planner.html" class="btn btn-secondary w-full" data-i18n="nav_planner">📅 Farm Diary & Planner</a>
+              <a href="ai-assistant.html" class="btn btn-primary w-full" data-i18n="ask_ai">Ask AI Voice</a>
             </div>
           </div>
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+              <h3 style="margin:0;" data-i18n="upcoming_tasks">📅 Upcoming Farm Reminders</h3>
+              <a href="farm-planner.html" class="btn btn-outline btn-sm" style="font-size:0.75rem;">+ Add Task</a>
+            </div>
+            <div id="dashboard-reminders">
+              <div class="empty-state"><p>Checking upcoming farm tasks...</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2 mb-4">
           <div class="card">
             <h3 class="mb-3" data-i18n="recent_advisories">Recent Advisories</h3>
             <div id="dashboard-advisories">
@@ -118,12 +140,11 @@
             </div>
             <a href="advisories.html" class="btn btn-outline btn-sm mt-3" data-i18n="view_all">View All</a>
           </div>
-        </div>
-
-        <div class="card">
-          <h3 class="mb-3" data-i18n="recent_activities">Recent Activities</h3>
-          <div class="activity-timeline" id="dashboard-activities">
-            <div class="empty-state"><p>Loading activities...</p></div>
+          <div class="card">
+            <h3 class="mb-3" data-i18n="recent_activities">Recent Activities</h3>
+            <div class="activity-timeline" id="dashboard-activities">
+              <div class="empty-state"><p>Loading activities...</p></div>
+            </div>
           </div>
         </div>
       </main>

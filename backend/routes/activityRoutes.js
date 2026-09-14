@@ -11,6 +11,10 @@ router.get('/activities/:farmId', auth, (req, res, next) => { req.query.farm = r
 router.post('/activities', auth, controller.create);
 router.put('/activities/:id', auth, controller.update);
 router.delete('/activities/:id', auth, controller.delete);
+router.get('/upcoming', auth, controller.getUpcomingReminders);
+router.get('/reminders', auth, controller.getUpcomingReminders);
+router.get('/expenses/summary', auth, controller.getExpenseSummary);
+router.get('/expense-summary', auth, controller.getExpenseSummary);
 router.get('/:id', auth, controller.getOne);
 router.put('/:id', auth, controller.update);
 router.put('/:id/complete', auth, controller.complete);

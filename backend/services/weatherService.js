@@ -317,6 +317,115 @@ class WeatherService {
     });
   }
 
+  _generateWeatherAlertsAndAdvice(weather) {
+    const alerts = [];
+    const advice = [];
+    const temp = Math.round(weather.temperature != null ? weather.temperature : (weather.temp != null ? weather.temp : 28));
+    const rain = parseFloat(weather.rain) || 0;
+    const windSpeed = Math.round(weather.windSpeed || 0);
+    const humidity = Math.round(weather.humidity || 65);
+    const desc = String(weather.description || weather.condition || '').toLowerCase();
+
+    // 1. Heavy Rain / Torrential / Thunderstorm
+    if (rain > 15 || desc.includes('heavy rain') || desc.includes('thunderstorm') || desc.includes('violent') || desc.includes('torrential')) {
+      alerts.push({
+        type: 'heavy_rain',
+        severity: 'critical',
+        title: 'Heavy Rainfall Warning',
+        title_mr: 'मुसळधार पावसाचा इशारा',
+        title_hi: 'भारी बारिश की चेतावनी',
+        message: 'Intense precipitation expected. Risk of surface runoff and waterlogging in low-lying plots.',
+        message_mr: 'मुसळधार पावसाची शक्यता आहे. सखल शेतात पाणी साचू नये म्हणून काळजी घ्या.',
+        message_hi: 'भारी बारिश का अनुमान है। निचले खेतों में जलभराव की स्थिति बन सकती है।'
+      });
+      advice.push({
+        category: 'drainage',
+        text: 'Ensure clear drainage trenches to prevent root asphyxiation and damping-off disease.',
+        text_mr: 'पाण्याचा त्वरित निचरा होण्यासाठी शेतातील चर व पाट तात्काळ मोकळे करा.',
+        text_hi: 'अतिरिक्त पानी निकालने के लिए खेतों में जल निकासी की नालियां साफ रखें।'
+      });
+      advice.push({
+        category: 'spraying',
+        text: 'Postpone pesticide spraying and top-dress fertilizer applications until rainfall ceases.',
+        text_mr: 'पाऊस संपेपर्यंत खते देणे व कीटकनाशक फवारणी पुढे ढकला.',
+        text_hi: 'बारिश रुकने तक किसी भी प्रकार का रासायनिक छिड़काव एवं खाद डालना स्थगित रखें।'
+      });
+    }
+
+    // 2. High Temperature / Heatwave
+    if (temp >= 38) {
+      alerts.push({
+        type: 'heatwave',
+        severity: 'high',
+        title: 'Heatwave Alert',
+        title_mr: 'तीव्र उष्णतेची लाट / हवामान इशारा',
+        title_hi: 'लू / तीव्र गर्मी की चेतावनी',
+        message: `High ambient temperature (${temp}°C). Increased risk of evapotranspiration stress.`,
+        message_mr: `जास्त तापमान (${temp}°C) मुळे पिकांवर बाष्पीभवन व पाण्याचा तीव्र ताण येऊ शकतो.`,
+        message_hi: `अधिक तापमान (${temp}°C) के कारण फसलों पर नमी का तनाव बढ़ सकता है।`
+      });
+      advice.push({
+        category: 'irrigation',
+        text: 'Provide light and frequent irrigation during early mornings or late evenings using micro-irrigation.',
+        text_mr: 'सकाळी लवकर किंवा संध्याकाळी ठिबक अथवा तुषार सिंचनाने हलके पाणी द्या.',
+        text_hi: 'सुबह जल्दी या देर शाम ड्रिप/स्प्रिंकलर से हल्की सिंचाई करें।'
+      });
+      advice.push({
+        category: 'spraying',
+        text: 'Avoid midday agrochemical sprays to prevent foliar chemical scorch.',
+        text_mr: 'दुपारच्या उन्हात फवारणी करणे टाळा, अन्यथा पिकांची पाने करपतील.',
+        text_hi: 'दोपहर की तेज धूप में कीटनाशकों का छिड़काव न करें।'
+      });
+    }
+
+    // 3. Strong Wind / Squall
+    if (windSpeed >= 28) {
+      alerts.push({
+        type: 'strong_wind',
+        severity: 'warning',
+        title: 'Strong Winds / Storm Alert',
+        title_mr: 'जोराच्या वाऱ्यांचा इशारा',
+        title_hi: 'तेज़ आंधी / हवाओं की चेतावनी',
+        message: `Wind gusts exceeding ${windSpeed} km/h. Risk of lodging in tall crops and spray drift.`,
+        message_mr: `वाऱ्याचा वेग जास्त (${windSpeed} किमी/तास) असल्याने केळी, ऊस व उंच पिके पडू शकतात.`,
+        message_hi: `हवा की गति अधिक (${windSpeed} किमी/घंटा) होने से लंबी फसलें गिरने की आशंका है।`
+      });
+      advice.push({
+        category: 'support',
+        text: 'Provide physical staking/support to horticulture plants, papaya, and banana.',
+        text_mr: 'भाजीपाला, केळी आणि पपईच्या झाडांना काठ्यांचा भक्कम आधार द्या.',
+        text_hi: 'सब्जियों और केले/पपीते के पौधों को सहारा (स्टेकिंग) प्रदान करें।'
+      });
+      advice.push({
+        category: 'spraying',
+        text: 'Suspend spraying operations to prevent hazardous drift onto non-target areas.',
+        text_mr: 'वाऱ्यामुळे औषधाचा अपव्यय व शेजारच्या पिकांवर उडणे टाळण्यासाठी फवारणी थांबवा.',
+        text_hi: 'दवा के फैलाव और बर्बादी से बचने के लिए हवा में छिड़काव रोक दें।'
+      });
+    }
+
+    // 4. High Humidity Fungal Alert
+    if (humidity >= 78 && temp >= 20 && temp <= 32) {
+      advice.push({
+        category: 'disease_risk',
+        text: 'Warm and humid conditions favor fungal blight and downy mildew. Inspect crop leaves and apply preventive bio-fungicide (Trichoderma).',
+        text_mr: 'हवेतील जास्त दमटपणामुळे बुरशीजन्य रोगांचा प्रादुर्भाव होऊ शकतो. नियमित पाहणी करून जैविक बुरशीनाशक वापरा.',
+        text_hi: 'गर्म व आर्द्र मौसम में फफूंद जनित रोगों का जोखिम रहता है। फसलों की निगरानी रखें और ट्राइकोडर्मा का छिड़काव करें।'
+      });
+    }
+
+    if (advice.length === 0) {
+      advice.push({
+        category: 'general',
+        text: 'Current agro-meteorological conditions are favorable for crop growth and standard cultivation activities.',
+        text_mr: 'सध्याचे हवामान पिकांच्या वाढीसाठी आणि सामान्य शेती मशागतीसाठी अनुकूल आहे.',
+        text_hi: 'वर्तमान मौसम फसलों की वृद्धि और सामान्य कृषि कार्यों के लिए अनुकूल है।'
+      });
+    }
+
+    return { alerts, advice };
+  }
+
   // --- Public API methods with Cache & Multi-Tier Fallback ---
   async getCurrentWeather(lat, lon, locationName) {
     const coords = await this._resolveCoordinates(lat, lon, locationName);
@@ -326,7 +435,14 @@ class WeatherService {
     if (mongoose.connection.readyState === 1) {
       try {
         const cached = await WeatherCache.findOne({ locationKey: cacheKey, expiresAt: { $gt: new Date() } });
-        if (cached && cached.data) return cached.data;
+        if (cached && cached.data) {
+          const cachedData = { ...cached.data };
+          const { alerts, advice } = this._generateWeatherAlertsAndAdvice(cachedData);
+          cachedData.alerts = alerts;
+          cachedData.farmingAdvice = advice;
+          cachedData.hasAlerts = alerts.length > 0;
+          return cachedData;
+        }
       } catch (e) {}
     }
 
@@ -354,6 +470,12 @@ class WeatherService {
     if (!result) {
       result = this._getOfflineCurrentWeather(coords.name);
     }
+
+    // Compute alerts and advice
+    const { alerts, advice } = this._generateWeatherAlertsAndAdvice(result);
+    result.alerts = alerts;
+    result.farmingAdvice = advice;
+    result.hasAlerts = alerts.length > 0;
 
     // Save to cache
     if (mongoose.connection.readyState === 1 && result) {

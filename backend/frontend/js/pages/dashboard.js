@@ -12,6 +12,7 @@ window.PageModules.dashboard = {
             this.loadStats(),
             this.loadRecentActivities(),
             this.loadRecentAdvisories(),
+            this.loadUpcomingReminders(),
         ]);
     },
 
@@ -77,6 +78,27 @@ window.PageModules.dashboard = {
             const desc = wd.description || wd.condition || 'Clear Sky';
             if (tempEl) tempEl.textContent = `${temp}°C`;
             if (descEl) descEl.textContent = desc.charAt(0).toUpperCase() + desc.slice(1);
+
+            // Render weather alert banner if any active alerts exist
+            const alertContainer = document.getElementById('dashboard-weather-alert');
+            if (alertContainer) {
+                const alerts = wd.alerts || (raw && raw.alerts) || [];
+                if (Array.isArray(alerts) && alerts.length > 0) {
+                    const topAlert = alerts[0];
+                    alertContainer.style.display = 'block';
+                    alertContainer.innerHTML = `
+                        <div style="background: linear-gradient(135deg, #fff7ed, #ffedd5); border: 1px solid #fdba74; border-left: 5px solid #f97316; border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                            <div>
+                                <strong style="color: #c2410c; font-size: 0.95rem; display: block; margin-bottom: 2px;">⚠️ ${window.Utils.sanitizeHtml(topAlert.title || 'Agromet Weather Alert')}</strong>
+                                <p style="margin: 0; font-size: 0.85rem; color: #9a3412;">${window.Utils.sanitizeHtml(topAlert.description || '')}</p>
+                            </div>
+                            <a href="weather.html" class="btn btn-sm btn-primary" style="white-space: nowrap; text-decoration: none;">View Advice ↗</a>
+                        </div>
+                    `;
+                } else {
+                    alertContainer.style.display = 'none';
+                }
+            }
         };
 
         const fetchWeather = async (lat, lon, loc) => {
@@ -172,6 +194,70 @@ window.PageModules.dashboard = {
             `).join('');
         } catch(e) {
             container.innerHTML = '<div class="empty-state"><p>No active advisories currently.</p></div>';
+        }
+    },
+
+    async loadUpcomingReminders() {
+        const container = document.getElementById('dashboard-reminders');
+        if (!container) return;
+
+        try {
+            const res = await window.API.get('/planner/upcoming?days=14');
+            const reminders = (res && Array.isArray(res.reminders)) ? res.reminders : ((res && Array.isArray(res.data)) ? res.data : []);
+
+            if (!reminders || reminders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 20px 10px; text-align: center;">
+                        <p style="font-size: 0.9rem; color: #10b981; font-weight: 500; margin-bottom: 4px;">✓ All Caught Up!</p>
+                        <p style="font-size: 0.8rem; color: #6b7280; margin: 0;">No tasks scheduled for the next 14 days. Use Farm Planner to schedule tasks.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+            reminders.slice(0, 4).forEach(item => {
+                const title = item.title || 'Farm Task';
+                const crop = item.crop ? `(${item.crop})` : '';
+                const dateStr = item.scheduledDate ? (window.Utils ? window.Utils.formatDate(item.scheduledDate) : new Date(item.scheduledDate).toLocaleDateString()) : '';
+                
+                let badge = '<span class="badge badge-info" style="font-size:0.75rem;">Upcoming</span>';
+                if (item.urgency === 'overdue') {
+                    badge = '<span class="badge" style="background:#fee2e2; color:#991b1b; font-size:0.75rem;">⚠️ Due / Overdue</span>';
+                } else if (item.urgency === 'urgent') {
+                    badge = '<span class="badge" style="background:#fef3c7; color:#92400e; font-size:0.75rem;">⏱️ Next 48h</span>';
+                }
+
+                html += `
+                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-left: 4px solid ${item.urgency === 'overdue' ? '#ef4444' : (item.urgency === 'urgent' ? '#f59e0b' : '#3b82f6')}; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: #1f2937;">${window.Utils.sanitizeHtml(title)} <span style="font-weight:400; font-size:0.8rem; color:#6b7280;">${window.Utils.sanitizeHtml(crop)}</span></div>
+                            <div style="font-size: 0.8rem; color: #4b5563;">📅 ${dateStr} &bull; 🌾 ${window.Utils.sanitizeHtml(item.farmName || 'My Farm')}</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                            ${badge}
+                            <button class="btn btn-sm btn-outline-success" style="padding: 2px 8px; font-size: 0.75rem;" onclick="window.PageModules.dashboard.markTaskDone('${item._id}')">✓ Done</button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = '<div class="empty-state"><p>No upcoming reminders found.</p></div>';
+        }
+    },
+
+    async markTaskDone(id) {
+        try {
+            await window.API.put(`/planner/${id}/complete`, {});
+            if (window.Utils && window.Utils.showToast) {
+                window.Utils.showToast('Activity marked as completed!', 'success');
+            }
+            this.loadUpcomingReminders();
+            this.loadRecentActivities();
+        } catch (err) {
+            console.error('Error marking activity complete:', err);
         }
     }
 };

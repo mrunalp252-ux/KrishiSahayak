@@ -28,6 +28,7 @@
         <a href="fertilizer-guide.html" class="nav-item">🧪 Fertilizer Guide</a>
         <a href="cultivation-guides.html" class="nav-item">📖 Cultivation Guides</a>
         <a href="advisories.html" class="nav-item">📢 Advisories</a>
+        <a href="schemes.html" class="nav-item">🏛️ Government Schemes</a>
         <div class="nav-section">Account</div>
         <a href="notifications.html" class="nav-item">🔔 Notifications</a>
         <a href="profile.html" class="nav-item">👤 Profile</a>
@@ -69,7 +70,29 @@
           <h2 data-i18n="farm_planner">Farm Activity Planner</h2>
           <div class="flex gap-2">
             <button class="btn btn-secondary" id="generate-plan-btn" data-i18n="generate_plan">Auto-Generate Plan</button>
-            <button class="btn btn-primary" id="add-activity-btn" data-i18n="add_activity">➕ Add Activity</button>
+            <button class="btn btn-primary" id="add-activity-btn" data-i18n="add_activity">➕ Add Activity / Diary</button>
+          </div>
+        </div>
+
+        <!-- Farm Diary & Expense Overview -->
+        <div class="card mb-4" id="planner-stats-bar" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08)); border: 1px solid rgba(16, 185, 129, 0.2);">
+          <div class="grid-4" style="text-align: center; gap: 12px;">
+            <div style="padding: 8px;">
+              <div style="font-size: 0.8rem; color: #6b7280;" data-i18n="total_farm_expenses">Total Farm Expenses</div>
+              <div style="font-size: 1.4rem; font-weight: 700; color: #10b981;" id="stat-total-expense">₹0</div>
+            </div>
+            <div style="padding: 8px;">
+              <div style="font-size: 0.8rem; color: #6b7280;" data-i18n="labour_costs">Labour Costs</div>
+              <div style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;" id="stat-labour-expense">₹0</div>
+            </div>
+            <div style="padding: 8px;">
+              <div style="font-size: 0.8rem; color: #6b7280;" data-i18n="input_costs">Seeds & Inputs</div>
+              <div style="font-size: 1.4rem; font-weight: 700; color: #f59e0b;" id="stat-inputs-expense">₹0</div>
+            </div>
+            <div style="padding: 8px;">
+              <div style="font-size: 0.8rem; color: #6b7280;" data-i18n="upcoming_reminders_count">Upcoming Tasks (14d)</div>
+              <div style="font-size: 1.4rem; font-weight: 700; color: #6366f1;" id="stat-upcoming-count">0</div>
+            </div>
           </div>
         </div>
 

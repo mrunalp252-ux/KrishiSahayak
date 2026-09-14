@@ -28,6 +28,7 @@
         <a href="fertilizer-guide.html" class="nav-item">🧪 Fertilizer Guide</a>
         <a href="cultivation-guides.html" class="nav-item">📖 Cultivation Guides</a>
         <a href="advisories.html" class="nav-item">📢 Advisories</a>
+        <a href="schemes.html" class="nav-item">🏛️ Government Schemes</a>
         <div class="nav-section">Account</div>
         <a href="notifications.html" class="nav-item">🔔 Notifications</a>
         <a href="profile.html" class="nav-item">👤 Profile</a>
@@ -66,6 +67,9 @@
 
       <main class="main-content">
         <div id="weather-container">
+          <!-- Weather Alert Banner -->
+          <div id="weather-alerts-container" class="mb-3" style="display:none;"></div>
+
           <div class="card weather-card mb-4" id="current-weather" style="background: linear-gradient(135deg, #4CAF50, #1B5E20); color: white;">
             <h3 class="mb-2" id="weather-location">Loading location...</h3>
             <p id="weather-time"></p>
@@ -89,6 +93,12 @@
                 <div id="weather-clouds">--%</div>
               </div>
             </div>
+          </div>
+
+          <!-- Agromet Farming Advice -->
+          <div id="weather-advice-card" class="card mb-4" style="display:none; border-left:4px solid var(--primary);">
+            <h3 class="mb-2" style="color:var(--primary-dark); font-size:1.15rem;">🌾 <span data-i18n="agromet_advice">Agromet Farming Advice (हवामान आधारित कृषी सल्ला)</span></h3>
+            <div id="weather-advice-list" style="line-height:1.6; font-size:0.95rem; color:var(--text-color);"></div>
           </div>
 
           <h3 class="mb-3" data-i18n="forecast">5-Day Forecast</h3>
